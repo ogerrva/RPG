@@ -1,6 +1,4 @@
-// ==========================================
-// 1. BANCO DE DADOS E GERADOR PROCEDURAL
-// ==========================================
+// js/data.js
 
 const Elements = {
     arcane: { id: "arcane", name: "Arcano", color: "#d942ff", glow: "#f2b3ff" },
@@ -21,7 +19,7 @@ const MagicBehaviors = {
     wave:    { type: "base", chains: 0, aoe: false, pierce: false, split: 0, orbit: false, implode: false, wave: true, delay: false, speed: 250 }
 };
 
-// As 100 Magias Oficiais
+// As 100 Magias
 const MasterSpells = [
     { n: "Echo Pulse", e: "arcane", b: "wave" }, { n: "Ripple Surge", e: "arcane", b: "wave" }, { n: "Arc Thread", e: "lightning", b: "bounce" }, { n: "Void Needle", e: "void", b: "pierce" }, { n: "Pulse Shard", e: "arcane", b: "split" }, { n: "Time Pebble", e: "ice", b: "delay" }, { n: "Mana Bloom", e: "arcane", b: "implode" }, { n: "Spiral Shot", e: "fire", b: "orbit" }, { n: "Gravity Flick", e: "void", b: "implode" }, { n: "Lumen Dart", e: "lightning", b: "normal" },
     { n: "Fractal Bloom", e: "ice", b: "split" }, { n: "Mirror Bolt", e: "arcane", b: "split" }, { n: "Split Halo", e: "fire", b: "split" }, { n: "Prism Scatter", e: "lightning", b: "split" }, { n: "Pulse Scatter", e: "arcane", b: "split" }, { n: "Echo Split", e: "void", b: "split" }, { n: "Spiral Fracture", e: "fire", b: "orbit" }, { n: "Nova Seed", e: "fire", b: "delay" }, { n: "Chain Bloom", e: "lightning", b: "bounce" }, { n: "Twin Pulse", e: "arcane", b: "split" },
@@ -36,17 +34,42 @@ const MasterSpells = [
 ];
 
 const EquipSlots = [
-    { id: "wand", name: "Cajado", max: 1 }, { id: "armor", name: "Traje", max: 1 },
-    { id: "amulet", name: "Amuleto", max: 1 }, { id: "earring", name: "Brinco", max: 2 }, { id: "ring", name: "Anel", max: 5 }
+    { id: "wand", name: "Cajado", max: 1 },
+    { id: "armor", name: "Traje", max: 1 },
+    { id: "amulet", name: "Amuleto", max: 1 },
+    { id: "earring", name: "Brinco", max: 2 },
+    { id: "ring", name: "Anel", max: 5 }
 ];
 
 const EquipTiers = [
-    { n: "Comum", mult: 1, c: "#a1a1a1" }, { n: "Raro", mult: 3, c: "#3399ff" }, 
-    { n: "Épico", mult: 8, c: "#aa33ff" }, { n: "Lendário", mult: 20, c: "#ffd700" }
+    { n: "Comum", mult: 1, c: "#a1a1a1" }, 
+    { n: "Raro", mult: 3, c: "#3399ff" }, 
+    { n: "Épico", mult: 8, c: "#aa33ff" }, 
+    { n: "Lendário", mult: 20, c: "#ffd700" }
+];
+
+// O NOVO SISTEMA DE PRÁTICA ÚNICA
+const PracticeData = [
+    // Corpo (Aumentam Dano, Ataque e Vida/Crítico)
+    { id: "p1", name: "Calejamento Físico", desc: "Sucos gástricos mágicos aumentam a densidade muscular.", stat: "dmg", statName: "Dano Base", mult: 0.10, baseReq: 10, category: "corpo" },
+    { id: "p2", name: "Reflexos de Lince", desc: "Acelera sinapses, aumentando a velocidade de disparo.", stat: "spd", statName: "Vel. Ataque", mult: 0.05, baseReq: 50, category: "corpo" },
+    { id: "p3", name: "Golpe Penetrante", desc: "Foca a visão em pontos vitais dos cristais.", stat: "crit", statName: "Chance de Crítico", mult: 0.02, baseReq: 250, category: "corpo" },
+    { id: "p4", name: "Fôlego de Ferro", desc: "Aumenta a capacidade de manter magias simultâneas.", stat: "slots", statName: "Limite de Treino", mult: 1, baseReq: 5000, category: "corpo" }, // Especial
+    
+    // Mente (XP, Energia, e Ouro)
+    { id: "p5", name: "Meditação Astral", desc: "Acalma a mente para absorver mais experiência.", stat: "xp", statName: "Ganho de XP", mult: 0.15, baseReq: 20, category: "mente" },
+    { id: "p6", name: "Sifão de Almas", desc: "Extrai resíduos de energia dos cristais quebrados.", stat: "eng", statName: "Drop Energia", mult: 0.02, baseReq: 100, category: "mente" },
+    { id: "p7", name: "Clarividência", desc: "Enxerga veios de ouro dentro dos alvos.", stat: "gold", statName: "Ganho de Ouro", mult: 0.10, baseReq: 500, category: "mente" },
+    
+    // Aura (Sinergias e Multiplicadores Avançados)
+    { id: "p8", name: "Ressonância Elemental", desc: "Aumenta o efeito de combos elementais.", stat: "combo", statName: "Poder de Sinergia", mult: 0.20, baseReq: 1000, category: "aura" },
+    { id: "p9", name: "Aceleração Espacial", desc: "Projéteis viajam mais rápido até o alvo.", stat: "projSpd", statName: "Vel. Projétil", mult: 0.05, baseReq: 2000, category: "aura" }
 ];
 
 const GameData = {
-    items: [], magics: [],
+    items: [], 
+    magics: [],
+    
     generate: () => {
         let iid = 0;
         let els = Object.keys(Elements);
@@ -55,13 +78,23 @@ const GameData = {
             EquipSlots.forEach(slot => {
                 els.forEach(elKey => {
                     let el = Elements[elKey];
+                    let lvlReq = (tIdx * 30) + 1;
+                    let cost = Math.floor(200 * Math.pow(2.0, tIdx * 2));
+                    
                     GameData.items.push({
-                        id: iid++, slot: slot.id, slotName: slot.name, 
+                        id: iid++, 
+                        slot: slot.id, 
+                        slotName: slot.name, 
                         name: `${slot.name} ${tier.n} do ${el.name}`,
-                        color: tier.c, element: elKey, 
-                        reqLevel: (tIdx * 30) + 1, 
-                        cost: Math.floor(200 * Math.pow(2.0, tIdx * 2)),
-                        stats: { eleDmg: (0.2 * tier.mult), spd: (0.02 * tier.mult), xp: (0.05 * tier.mult) }
+                        color: tier.c, 
+                        element: elKey, 
+                        reqLevel: lvlReq, 
+                        cost: cost,
+                        stats: { 
+                            eleDmg: (0.2 * tier.mult), 
+                            spd: (0.02 * tier.mult), 
+                            xp: (0.05 * tier.mult) 
+                        }
                     });
                 });
             });
@@ -70,14 +103,29 @@ const GameData = {
         MasterSpells.forEach((sp, idx) => {
             let el = Elements[sp.e];
             let b = MagicBehaviors[sp.b];
+            
             let calcCost = Math.floor(100 * Math.pow(1.1, idx));
+            if (calcCost > 5000) calcCost = 5000; 
             
             GameData.magics.push({
-                id: idx, name: sp.n, element: sp.e, elementName: el.name,
-                color: el.color, glow: el.glow, type: b.type, behavior: sp.b,
-                speed: b.speed, chains: b.chains, aoe: b.aoe, pierce: b.pierce, 
-                split: b.split, orbit: b.orbit, implode: b.implode, wave: b.wave, delay: b.delay,
-                cost: Math.min(5000, calcCost), 
+                id: idx, 
+                name: sp.n, 
+                element: sp.e, 
+                elementName: el.name,
+                color: el.color, 
+                glow: el.glow, 
+                type: b.type, 
+                behavior: sp.b,
+                speed: b.speed,
+                chains: b.chains, 
+                aoe: b.aoe, 
+                pierce: b.pierce, 
+                split: b.split, 
+                orbit: b.orbit,
+                implode: b.implode,
+                wave: b.wave,
+                delay: b.delay,
+                cost: calcCost,
                 dmgMult: 1 + (idx * 0.05)
             });
         });
@@ -104,8 +152,6 @@ const SpriteGen = {
     }
 };
 
-const Locales = { pt: { title: "Ear Mage" }, en: { title: "Ear Mage" } };
-const Lang = { current: 'pt', toggle: () => { Lang.current = Lang.current === 'pt' ? 'en' : 'pt'; document.getElementById('btn-lang').innerText = Lang.current === 'pt' ? 'PT' : 'EN'; UI.rebuildAll(); SaveSystem.save(true); } };
 const Utils = { 
     format: (n) => { if (n < 1000) return Math.floor(n).toString(); const s = ["", "K", "M", "B", "T", "Qa"]; const id = Math.floor(Math.log10(n) / 3); return (n / Math.pow(1000, id)).toFixed(2) + s[id]; }, 
     formatTime: (sec) => { let h = Math.floor(sec / 3600); let m = Math.floor((sec % 3600) / 60); let s = Math.floor(sec % 60); return `${h}h ${m}m ${s}s`; }, 

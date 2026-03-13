@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ear Mage: Epic Builds</title>
+    
+    <!-- PWA - Manifesto para o navegador saber que é um App -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050308">
+    
+    <!-- Fonte e CSS -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div id="app-container">
-    
-    <!-- CABEÇALHO GERAL -->
     <div id="top-bar">
         <div class="header-group">
             <button class="hdr-btn" onclick="UI.toggleStats()">Status Globais</button>
@@ -31,13 +35,10 @@
     </div>
 
     <div id="main-area">
-        
-        <!-- JOGO FIXO NO TOPO -->
         <div id="game-view">
             <canvas id="gameCanvas" width="480" height="270"></canvas>
         </div>
 
-        <!-- PAINEL DE INTERFACE (ABAS E SUBMENUS) -->
         <div class="ui-panel">
             <div class="tabs">
                 <div class="tab active" onclick="UI.switchTab('practice')" id="tab-btn-practice">Prática</div>
@@ -49,51 +50,41 @@
             </div>
             
             <div class="panel-content">
-                
-                <!-- ABA PRÁTICA (Agora com Submenus e Treinos Únicos) -->
+                <!-- PRÁTICA -->
                 <div id="tab-practice" class="tab-content active">
                     <div class="sub-tabs" id="practice-filters"></div>
-                    <div class="aba-desc">Habilidades passivas que sobem de nível infinitamente.</div>
+                    <div class="aba-desc" style="margin-bottom:10px;">Aumente atributos permanentemente. O limite de treinos depende da habilidade Fôlego de Ferro e seus Resets.</div>
                     <div id="practice-list"></div>
                 </div>
 
-                <!-- ABA ALVOS -->
                 <div id="tab-targets" class="tab-content">
-                    <div class="aba-desc">Gerencie a dificuldade e a quantidade de inimigos.</div>
                     <div id="targets-list"></div>
                 </div>
 
-                <!-- ABA LOJA -->
                 <div id="tab-shop" class="tab-content">
                     <div class="sub-tabs" id="shop-filters"></div>
                     <div id="shop-list"></div>
                 </div>
                 
-                <!-- ABA INVENTÁRIO -->
                 <div id="tab-inv" class="tab-content">
-                    <div class="aba-title">SEUS EQUIPAMENTOS ATUAIS</div>
+                    <div class="aba-title">SEUS EQUIPAMENTOS (CLIQUE PARA EQUIPAR)</div>
                     <div class="equip-grid" id="equip-slots-container"></div>
                     <hr class="divisor">
-                    <div class="sub-tabs" id="inv-filters"></div>
                     <div id="inventory-list"></div>
                 </div>
 
-                <!-- ABA MAGIAS -->
                 <div id="tab-magic" class="tab-content">
                     <div id="combo-display" class="combo-alert" style="display:none;"></div>
-                    <div class="aba-title">MAGIAS EQUIPADAS (<span id="magic-count">0</span>/5)</div>
+                    <div class="aba-title">SLOTS DE MAGIA ATIVOS (<span id="magic-count">0</span>/5)</div>
                     <div class="equip-grid" id="magic-slots-container"></div>
                     <hr class="divisor">
-                    <div class="sub-tabs" id="magic-filters"></div>
                     <div id="magic-inventory-list"></div>
                 </div>
                 
-                <!-- ABA RESET -->
                 <div id="tab-reset" class="tab-content">
                     <div class="ascend-box">
                         <h3>Reset do Mago</h3>
-                        <p class="aba-desc">Ao alcançar o Nível 350, resete seu Ouro, Energia e Alvos. <br><br><span style="color: var(--gold);">Itens, Magias e Habilidades de Prática SÃO MANTIDOS!</span></p>
-                        
+                        <p class="aba-desc">Alcance o Nível 350 para resetar seu progresso (Ouro, Energia e Alvos) em troca de Pontos de Atributo globais.</p>
                         <div class="mu-stats-container">
                             <div class="mu-points-title">Pontos Livres: <span id="val-stat-pts">0</span></div>
                             <div class="mu-stat-row"><span>💪 Força (+10% Dano)</span> <div><span id="pts-dmg" class="pt-val">0</span> <button class="pt-btn" onclick="Player.addStat('dmg')">+</button></div></div>
@@ -105,7 +96,6 @@
                         <button class="act-btn btn-special" id="btn-do-reset" onclick="Prestige.muReset()">Resetar Mago</button>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -113,7 +103,6 @@
 
 <div id="toast-container"></div>
 
-<!-- MODAL STATUS GLOBAL -->
 <div id="modal-overlay" class="modal-overlay" onclick="if(event.target === this) UI.toggleStats()">
     <div id="modal-stats" class="modal-box">
         <h2>Status Global da Build</h2>
@@ -127,14 +116,12 @@
             <div class="stat-row"><span>Tempo Jogado:</span> <span class="stat-val" id="stat-time">0s</span></div>
             <div class="stat-row"><span>Ouro Total:</span> <span class="stat-val" id="stat-gold">0</span></div>
             <div class="stat-row"><span>Alvos Destruídos:</span> <span class="stat-val" id="stat-kills">0</span></div>
-            
-            <div style="margin-top: 25px;"><button class="act-btn btn-danger" onclick="SaveSystem.hardReset()">Apagar Save</button></div>
+            <div style="margin-top: 25px;"><button class="act-btn btn-danger" onclick="SaveSystem.hardReset()">Apagar Save (Cuidado)</button></div>
         </div>
         <button class="act-btn" style="margin-top:15px;" onclick="UI.toggleStats()">Fechar</button>
     </div>
 </div>
 
-<!-- MODAL DE EQUIPAR -->
 <div id="equip-modal" class="modal-overlay" onclick="if(event.target === this) UI.closeEquipModal()">
     <div class="modal-box">
         <h2 id="equip-modal-title" style="margin-top:0;">Escolha o Item</h2>
@@ -142,6 +129,18 @@
         <button class="act-btn" style="margin-top:15px;" onclick="UI.closeEquipModal()">Cancelar</button>
     </div>
 </div>
+
+<!-- Scripts -->
+<script>
+    // Inicialização do PWA!
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log('Service Worker Registrado: Aplicativo instalável!'))
+            .catch(err => console.log('Erro no Service Worker', err));
+        });
+    }
+</script>
 
 <script src="./js/data.js"></script>
 <script src="./js/core.js"></script>

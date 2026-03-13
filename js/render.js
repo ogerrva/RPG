@@ -1,6 +1,8 @@
-// ==========================================
-// 4. RENDERIZADOR (Efeitos e Iluminação)
-// ==========================================
+/**
+ * =======================================================
+ * 5. RENDERIZADOR (EFEITOS GRÁFICOS DO CANVAS)
+ * =======================================================
+ */
 
 const Renderer = {
     canvas: null, ctx: null, shake: 0, time: 0, clouds: [], levelUpAuraTimer: 0,

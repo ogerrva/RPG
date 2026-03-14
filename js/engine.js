@@ -1,11 +1,11 @@
 /**
  * =======================================================
- * 7. SISTEMA DE SAVE INDESTRUTÍVEL (COM MIGRAÇÃO DE DADOS)
+ * 7. SISTEMA DE SAVE INDESTRUTÍVEL E ENGINE LOOP
  * =======================================================
  */
 
 const SaveSystem = {
-    key: 'earMageSaveData_Final100',
+    key: 'earMageSaveData_ActionRPG_FINAL',
     save: (silent = false) => {
         try {
             let data = { 
@@ -39,8 +39,7 @@ const SaveSystem = {
     },
     
     load: () => {
-        // Tenta achar o save novo. Se não achar, procura a chave do save antigo para não perder progresso
-        let saved = localStorage.getItem(SaveSystem.key) || localStorage.getItem('earMageSaveData_EpicBuilds'); 
+        let saved = localStorage.getItem(SaveSystem.key) || localStorage.getItem('earMageSaveData_Final100'); 
         if (!saved) return 0;
         
         try {
@@ -99,8 +98,9 @@ const SaveSystem = {
     },
     
     hardReset: () => { 
-        if (confirm("Isto apagará TODO O SEU PROGRESSO permanentemente (Reset de Máquina). Você voltará ao zero. Tem certeza?")) { 
+        if (confirm("Isto apagará TODO O SEU PROGRESSO permanentemente. Você voltará ao zero. Tem certeza?")) { 
             localStorage.removeItem(SaveSystem.key); 
+            localStorage.removeItem('earMageSaveData_Final100'); 
             location.reload(); 
         } 
     }
@@ -115,16 +115,16 @@ const Engine = {
     lastTime: Date.now(), 
     
     init: () => {
-        // 1. Gera os 100 poderes e os itens
+        // 1. Gera os 100 poderes e os itens de loot procedurais
         GameData.generate(); 
         
-        // 2. Inicializa as habilidades base (Prática)
+        // 2. Inicializa as habilidades base (Prática - Corpo, Mente e Aura)
         Skills.init();
         
-        // 3. Prepara os sprites nativos de Pixel Art
+        // 3. Prepara os sprites nativos de Pixel Art (Alvos e Mago)
         SpriteGen.init(); 
         
-        // 4. Carrega o SaveGame (se houver)
+        // 4. Carrega o SaveGame (se houver) e vê quanto tempo ficou offline
         let offlineTime = SaveSystem.load(); 
         
         // 5. Verifica se há combos armados
@@ -135,30 +135,30 @@ const Engine = {
         Renderer.init(); 
         UI.init();
         
-        // 7. Sistema de Recompensa Offline (Max 24h)
+        // 7. Sistema de Recompensa Offline (Max 24h offline para não quebrar a economia)
         if (offlineTime > 60) {
             let offCap = Math.min(offlineTime, 86400); 
             let eqM = Player.equippedMagics.filter(m => m !== null).length;
             
-            // Se tiver sem magia nenhuma equipada, ganha pelo ataque básico
+            // O ganho depende de quantos tiros você dava por segundo e qual o HP do monstro
             let dps = Combat.stats.damage * Combat.stats.attackSpeed * (1 + eqM); 
             let kills = Math.floor((dps * offCap) / Combat.getTargetMaxHp());
             
             if (kills > 0) { 
-                Economy.gold += kills * Combat.getTargetGold() * Economy.goldMult; 
+                let gEarned = kills * Combat.getTargetGold() * Economy.goldMult;
+                Economy.gold += gEarned; 
                 Economy.energy += Math.floor(kills * Combat.stats.engDrop); 
                 Player.gainXp(kills * 100 * Economy.targetLevel); 
-                Skills.addXp(kills * 50 * Economy.targetLevel);
-                UI.showToast(`Ganho Offline: +${Utils.format(kills * Combat.getTargetGold() * Economy.goldMult)} Ouro!`); 
+                UI.showToast(`Ganho Offline: +${Utils.format(gEarned)} Ouro!`); 
             }
         }
         
-        // 8. Salva inicialmente e liga o Auto-Save
+        // 8. Salva o progresso que carregou e liga o Auto-Save
         SaveSystem.save(true); 
         setInterval(() => SaveSystem.save(true), 5000); 
         window.addEventListener('beforeunload', () => SaveSystem.save(true)); 
         
-        // 9. Inicia o Loop Temporal
+        // 9. Inicia o Relógio do Jogo
         Engine.lastTime = Date.now(); 
         requestAnimationFrame(Engine.loop);
     },
@@ -168,7 +168,7 @@ const Engine = {
             let now = Date.now(); 
             let dt = (now - Engine.lastTime) / 1000; 
             
-            // Limitador de tempo para aba hibernando
+            // Limita o tempo do Frame para 0.1s para evitar física bugando caso o PC trave
             if (dt < 0) dt = 0; 
             if (dt > 0.1) dt = 0.1; 
             
@@ -181,7 +181,7 @@ const Engine = {
             Renderer.draw(dt); 
             
         } catch(err) { 
-            console.error("Game Loop parou:", err); 
+            console.error("Game Loop Crashado:", err); 
         } 
         
         requestAnimationFrame(Engine.loop); 

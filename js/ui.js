@@ -4,6 +4,33 @@
  * =======================================================
  */
 
+const Tooltip = {
+    el: null, 
+    init: () => { 
+        Tooltip.el = document.getElementById('tooltip'); 
+        document.addEventListener('mousemove', Tooltip.move); 
+    },
+    show: (target) => { 
+        document.getElementById('tt-title').innerText = target.dataset.name; 
+        document.getElementById('tt-desc').innerText = target.dataset.desc; 
+        document.getElementById('tt-stats').innerText = target.dataset.stats; 
+        Tooltip.el.style.display = 'block'; 
+    },
+    hide: () => { 
+        Tooltip.el.style.display = 'none'; 
+    },
+    move: (e) => { 
+        if(Tooltip.el.style.display === 'block') { 
+            let x = e.clientX + 15; 
+            let y = e.clientY + 15; 
+            if (x + Tooltip.el.offsetWidth > window.innerWidth) x = window.innerWidth - Tooltip.el.offsetWidth - 10; 
+            if (y + Tooltip.el.offsetHeight > window.innerHeight) y = window.innerHeight - Tooltip.el.offsetHeight - 10; 
+            Tooltip.el.style.left = x + 'px'; 
+            Tooltip.el.style.top = y + 'px'; 
+        } 
+    }
+};
+
 const UI = {
     needsUpdate: true, 
     needsFullRebuild: false, 
@@ -13,6 +40,7 @@ const UI = {
     currentMagicFilter: 'all',
     
     init: () => { 
+        Tooltip.init(); 
         UI.rebuildAll(); 
     },
     
@@ -68,9 +96,9 @@ const UI = {
                 let isEquipped = Player.equippedMagics.includes(id);
                 return `<div class="list-item ${isEquipped ? 'equipped' : ''}">
                             <div class="item-header">
-                                <span style="color:${m.color}; text-shadow: 1px 1px 0 ${m.glow}">${m.name}</span>
+                                <span style="color:${m.color}">${m.name}</span>
                             </div>
-                            <div class="item-desc">${m.desc}</div>
+                            <div class="item-desc">Elemento: ${m.elementName}</div>
                             <button class="act-btn" onclick="Player.setMagic(${slotIdx}, ${id})">Equipar Aqui</button>
                         </div>`;
             }).join('');
@@ -125,7 +153,6 @@ const UI = {
         
         let htmlPractice = Skills.list.filter(s => s.category === UI.currentPracticeFilter).map(s => { 
             let isActive = Skills.activeSkills.includes(s.id); 
-            
             let multVal = s.stat === "slots" ? Math.floor(s.level * s.mult) : Math.floor(s.level * s.mult * 100);
             let statsStr = `+${multVal}${s.stat === "slots" ? "" : "%"} ${s.statName}`; 
             
@@ -144,7 +171,7 @@ const UI = {
                         </button>
                     </div>`; 
         }).join('');
-        document.getElementById('practice-list').innerHTML = htmlPractice || `<p style="font-size:8px; color:gray; text-align:center; padding: 20px;">Nenhum treino disponível.</p>`;
+        document.getElementById('practice-list').innerHTML = htmlPractice || `<p style="font-size:8px; color:gray; text-align:center;">Nenhum treino encontrado.</p>`;
 
         // 2. RECONSTROI A ABA DE ALVOS
         document.getElementById('targets-list').innerHTML = `
@@ -161,7 +188,7 @@ const UI = {
         
         // 3. RECONSTROI A ABA DE LOJA COM FILTROS
         let fBtns = EquipSlots.map(s => `<button class="sub-tab-btn ${UI.currentShopFilter === s.id ? 'active' : ''}" onclick="UI.filterShop('${s.id}')">${s.name}s</button>`).join('');
-        fBtns += `<button class="sub-tab-btn ${UI.currentShopFilter === 'magic' ? 'active' : ''}" onclick="UI.filterShop('magic')">Grimórios</button>`;
+        fBtns += `<button class="sub-tab-btn ${UI.currentShopFilter === 'magic' ? 'active' : ''}" onclick="UI.filterShop('magic')">Magias</button>`;
         document.getElementById('shop-filters').innerHTML = fBtns;
         
         if (UI.currentShopFilter === 'magic') {
@@ -170,26 +197,19 @@ const UI = {
                     <div class="item-header">
                         <span style="color:${m.color}; text-shadow:1px 1px 0 ${m.glow}">${m.name}</span>
                     </div>
-                    <div class="item-desc">${m.desc}</div>
+                    <div class="item-desc">Magia do tipo ${m.type}</div>
                     <button class="act-btn" onclick="Player.buyMagic(${m.id})">Comprar: 🔮 ${Utils.format(m.cost)}</button>
                 </div>`).join('');
         } else {
             document.getElementById('shop-list').innerHTML = GameData.items.filter(i => i.slot === UI.currentShopFilter && !Player.inventory.items.includes(i.id)).map(i => { 
-                
-                let statsHtml = [];
-                if(i.stats.eleDmg) statsHtml.push(`+${Math.floor(i.stats.eleDmg*100)}% Dano de ${Elements[i.element].name}`);
-                if(i.stats.spd) statsHtml.push(`+${Math.floor(i.stats.spd*100)}% Vel.`);
-                if(i.stats.xp) statsHtml.push(`+${Math.floor(i.stats.xp*100)}% XP`);
-                if(i.stats.goldMult) statsHtml.push(`+${Math.floor(i.stats.goldMult*100)}% Ouro`);
-                if(i.stats.slots) statsHtml.push(`+${i.stats.slots} Prática`);
-
+                let elName = Elements[i.element].name; 
                 return `
                 <div class="list-item">
                     <div class="item-header">
                         <span style="color:${i.color}">${i.name}</span> 
                         <span style="color:var(--text-muted)">Nv.Req ${i.reqLevel}</span>
                     </div>
-                    <div class="item-stats">${statsHtml.join(' | ')}</div>
+                    <div class="item-stats">+${Math.floor(i.stats.eleDmg*100)}% Dano de ${elName}</div>
                     <button class="act-btn" onclick="Player.buyItem(${i.id})">Comprar: 🪙 ${Utils.format(i.cost)}</button>
                 </div>`; 
             }).join('');
@@ -279,7 +299,6 @@ const UI = {
         document.getElementById('val-resets').innerText = Player.resets; 
         document.getElementById('player-xp-bar').style.width = `${Math.min(100, (Player.xp / Player.getReqXp()) * 100)}%`;
         
-        // Feedback de Combos Secretos e Supremas
         let comboAlert = document.getElementById('combo-display');
         if (Player.comboActive || Player.secretCombo) { 
             comboAlert.style.display = 'block'; 
@@ -344,7 +363,7 @@ const UI = {
             } 
         }
         
-        // Updates da Barra de XP na Prática
+        // Updates das Barras de XP de Prática
         Skills.activeSkills.forEach(id => { 
             let act = Skills.list.find(s => s.id === id); 
             if(act) { 

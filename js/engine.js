@@ -1,6 +1,6 @@
 /**
  * =======================================================
- * 7. SAVE SYSTEM IMORTAL (Conversão Automática)
+ * 7. SISTEMA DE SAVE INDESTRUTÍVEL (COM MIGRAÇÃO DE DADOS)
  * =======================================================
  */
 
@@ -25,6 +25,7 @@ const SaveSystem = {
                 }
             };
             localStorage.setItem(SaveSystem.key, JSON.stringify(data));
+            
             if (!silent) { 
                 let ind = document.getElementById('save-indicator'); 
                 if(ind){ 
@@ -33,11 +34,12 @@ const SaveSystem = {
                 } 
             }
         } catch(e) {
-            console.error("Falha ao salvar:", e);
+            console.error("Falha ao salvar o progresso:", e);
         }
     },
     
     load: () => {
+        // Tenta achar o save novo. Se não achar, procura a chave do save antigo para não perder progresso
         let saved = localStorage.getItem(SaveSystem.key) || localStorage.getItem('earMageSaveData_EpicBuilds'); 
         if (!saved) return 0;
         
@@ -91,12 +93,13 @@ const SaveSystem = {
             }
             return (Date.now() - (d.timestamp || Date.now())) / 1000;
         } catch(e) { 
+            console.error("Save corrompido. Iniciando um novo jogo.");
             return 0; 
         }
     },
     
     hardReset: () => { 
-        if (confirm("Isto apagará TODO O SEU PROGRESSO permanentemente. Você voltará ao zero. Tem certeza?")) { 
+        if (confirm("Isto apagará TODO O SEU PROGRESSO permanentemente (Reset de Máquina). Você voltará ao zero. Tem certeza?")) { 
             localStorage.removeItem(SaveSystem.key); 
             location.reload(); 
         } 
@@ -127,7 +130,7 @@ const Engine = {
         // 5. Verifica se há combos armados
         Player.checkCombos();
         
-        // 6. Prepara as entidades (Alvos) e os Menus Visuais
+        // 6. Prepara as entidades e os Menus Visuais
         Combat.init(); 
         Renderer.init(); 
         UI.init();
@@ -136,19 +139,21 @@ const Engine = {
         if (offlineTime > 60) {
             let offCap = Math.min(offlineTime, 86400); 
             let eqM = Player.equippedMagics.filter(m => m !== null).length;
+            
             // Se tiver sem magia nenhuma equipada, ganha pelo ataque básico
             let dps = Combat.stats.damage * Combat.stats.attackSpeed * (1 + eqM); 
             let kills = Math.floor((dps * offCap) / Combat.getTargetMaxHp());
             
             if (kills > 0) { 
-                Economy.gold += kills * Combat.getTargetGold(); 
+                Economy.gold += kills * Combat.getTargetGold() * Economy.goldMult; 
                 Economy.energy += Math.floor(kills * Combat.stats.engDrop); 
                 Player.gainXp(kills * 100 * Economy.targetLevel); 
-                UI.showToast(`De Volta! Progresso Offline: +${Utils.format(kills * Combat.getTargetGold())} Ouro!`); 
+                Skills.addXp(kills * 50 * Economy.targetLevel);
+                UI.showToast(`Ganho Offline: +${Utils.format(kills * Combat.getTargetGold() * Economy.goldMult)} Ouro!`); 
             }
         }
         
-        // 8. Salva inicialmente para garantir integridade e programa o Auto-Save
+        // 8. Salva inicialmente e liga o Auto-Save
         SaveSystem.save(true); 
         setInterval(() => SaveSystem.save(true), 5000); 
         window.addEventListener('beforeunload', () => SaveSystem.save(true)); 
@@ -163,7 +168,7 @@ const Engine = {
             let now = Date.now(); 
             let dt = (now - Engine.lastTime) / 1000; 
             
-            // Prevenções de quebra caso a aba do navegador seja suspensa
+            // Limitador de tempo para aba hibernando
             if (dt < 0) dt = 0; 
             if (dt > 0.1) dt = 0.1; 
             
@@ -178,6 +183,7 @@ const Engine = {
         } catch(err) { 
             console.error("Game Loop parou:", err); 
         } 
+        
         requestAnimationFrame(Engine.loop); 
     }
 };

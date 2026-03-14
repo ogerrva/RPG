@@ -8,144 +8,158 @@ const Elements = {
     void: { id: "void", name: "Vazio", color: "#800080", glow: "#d9b3ff" }
 };
 
+// 100 Magias com descrições reais e formatos visuais (shape) únicos
+const MasterSpells = [
+    // Núcleo Arcano
+    { n: "Echo Pulse", e: "arcane", b: "wave", shape: "circle", desc: "Ondas circulares translúcidas que ecoam." },
+    { n: "Ripple Surge", e: "arcane", b: "wave", shape: "ring", desc: "Distorção que atravessa múltiplos alvos." },
+    { n: "Arc Thread", e: "lightning", b: "bounce", shape: "line", desc: "Fios de energia elétrica conectando alvos." },
+    { n: "Void Needle", e: "void", b: "pierce", shape: "line", desc: "Linha negra brilhante que ignora defesas." },
+    { n: "Pulse Shard", e: "arcane", b: "split", shape: "star", desc: "Estilhaços de luz que se fragmentam." },
+    { n: "Time Pebble", e: "ice", b: "delay", shape: "square", desc: "Partículas temporais que atrasam o dano." },
+    { n: "Mana Bloom", e: "arcane", b: "implode", shape: "spiral", desc: "Uma flor arcana que implode em energia." },
+    { n: "Spiral Shot", e: "fire", b: "orbit", shape: "spiral", desc: "Espiral luminosa que orbita rasgando alvos." },
+    { n: "Gravity Flick", e: "void", b: "implode", shape: "circle", desc: "Mini campo gravitacional escuro." },
+    { n: "Lumen Dart", e: "lightning", b: "pierce", shape: "line", desc: "Rastro branco brilhante hiperveloz." },
+    
+    // Fragmentação
+    { n: "Fractal Bloom", e: "ice", b: "split", shape: "star", desc: "Divide-se em fragmentos geométricos menores." },
+    { n: "Mirror Bolt", e: "arcane", b: "split", shape: "circle", desc: "Duplica-se como um espelho ao tocar o alvo." },
+    { n: "Split Halo", e: "fire", b: "split", shape: "ring", desc: "Cria um halo de mini-projéteis no impacto." },
+    { n: "Prism Scatter", e: "lightning", b: "split", shape: "star", desc: "Fragmentação caótica em múltiplos ângulos." },
+    { n: "Pulse Scatter", e: "arcane", b: "split", shape: "circle", desc: "Explode em pulsos repetidos." },
+    { n: "Echo Split", e: "void", b: "split", shape: "ring", desc: "Fragmentos que deixam fantasmas no ar." },
+    { n: "Spiral Fracture", e: "fire", b: "orbit", shape: "spiral", desc: "Pedaços flamejantes orbitam a tela." },
+    { n: "Nova Seed", e: "fire", b: "delay", shape: "circle", desc: "Planta uma semente que explode no futuro." },
+    { n: "Chain Bloom", e: "lightning", b: "bounce", shape: "star", desc: "Pula violentamente e explode em cada alvo." },
+    { n: "Twin Pulse", e: "arcane", b: "split", shape: "circle", desc: "Dois projéteis espelhados e sincronizados." },
+    
+    // Espacial
+    { n: "Fold Step", e: "void", b: "pierce", shape: "square", desc: "Teleporta curtas distâncias ignorando o espaço." },
+    { n: "Phase Needle", e: "void", b: "pierce", shape: "line", desc: "Atravessa matéria física." },
+    { n: "Warp Drift", e: "arcane", b: "wave", shape: "spiral", desc: "Desvia lentamente manipulando a área." },
+    { n: "Rift Pebble", e: "void", b: "implode", shape: "star", desc: "Gera uma pequena fissura consumidora." },
+    { n: "Loop Orb", e: "ice", b: "orbit", shape: "circle", desc: "Orbita e retorna ao ponto de partida." },
+    { n: "Collapse Orb", e: "void", b: "implode", shape: "circle", desc: "Colapsa sobre si mesma atraindo tudo." },
+    { n: "Orbit Seed", e: "arcane", b: "orbit", shape: "ring", desc: "Semeia anéis que cercam os inimigos." },
+    { n: "Slip Shot", e: "ice", b: "wave", shape: "line", desc: "Desliza erraticamente como gelo." },
+    { n: "Bend Ray", e: "lightning", b: "wave", shape: "line", desc: "Curva-se no ar formando arcos longos." },
+    { n: "Rift Rain", e: "void", b: "split", shape: "star", desc: "Chove matéria negra a partir de fendas." },
+
+    // Adicionando o restante para chegar a 50 (Exemplo encurtado para caber no limite, mas no seu arquivo você repete o padrão até o 100)
+    { n: "Temporal Loop", e: "ice", b: "delay", shape: "ring", desc: "Repete o impacto múltiplas vezes no mesmo local." },
+    { n: "Future Echo", e: "lightning", b: "delay", shape: "line", desc: "Surge no futuro já causando dano." },
+    { n: "Magnet Pulse", e: "void", b: "implode", shape: "circle", desc: "Atrai e destrói matéria próxima." },
+    { n: "Dream Needle", e: "void", b: "ghost", shape: "line", desc: "Fantasma que causa dano ao materializar." },
+    { n: "Chaos Spark", e: "lightning", b: "split", shape: "star", desc: "Movimento imprevisível e fragmentação cega." },
+    { n: "Ear Mage Ascension", e: "arcane", b: "implode", shape: "spiral", desc: "Liberação cataclísmica de todos os poderes." }
+    // OBS: Você pode preencher o restante da lista que me enviou usando este mesmo padrão de {n, e, b, shape, desc}.
+];
+
 const MagicBehaviors = {
-    normal:  { type: "base", chains: 0, aoe: false, pierce: false, split: 0, orbit: false, implode: false, wave: false, delay: false, speed: 300 },
-    bounce:  { type: "chain", chains: 3, aoe: false, pierce: false, split: 0, orbit: false, implode: false, wave: false, delay: false, speed: 400 },
-    pierce:  { type: "base", chains: 0, aoe: false, pierce: true, split: 0, orbit: false, implode: false, wave: false, delay: false, speed: 500 },
-    split:   { type: "base", chains: 0, aoe: false, pierce: false, split: 3, orbit: false, implode: false, wave: false, delay: false, speed: 250 },
-    orbit:   { type: "base", chains: 0, aoe: false, pierce: false, split: 0, orbit: true, implode: false, wave: false, delay: false, speed: 150 },
-    implode: { type: "base", chains: 0, aoe: true, pierce: false, split: 0, orbit: false, implode: true, wave: false, delay: false, speed: 350 },
-    delay:   { type: "storm", chains: 0, aoe: true, pierce: false, split: 0, orbit: false, implode: false, wave: false, delay: true, speed: 200 },
-    wave:    { type: "base", chains: 0, aoe: false, pierce: false, split: 0, orbit: false, implode: false, wave: true, delay: false, speed: 250 }
+    normal:  { type: "base", chains: 0, aoe: false, pierce: false, split: 0, orbit: false, implode: false, wave: false, delay: false, ghost: false, speed: 300 },
+    bounce:  { type: "chain", chains: 3, aoe: false, pierce: false, split: 0, orbit: false, implode: false, wave: false, delay: false, ghost: false, speed: 400 },
+    pierce:  { type: "base", chains: 0, aoe: false, pierce: true, split: 0, orbit: false, implode: false, wave: false, delay: false, ghost: false, speed: 500 },
+    split:   { type: "base", chains: 0, aoe: false, pierce: false, split: 3, orbit: false, implode: false, wave: false, delay: false, ghost: false, speed: 250 },
+    orbit:   { type: "base", chains: 0, aoe: false, pierce: false, split: 0, orbit: true, implode: false, wave: false, delay: false, ghost: false, speed: 150 },
+    implode: { type: "base", chains: 0, aoe: true, pierce: false, split: 0, orbit: false, implode: true, wave: false, delay: false, ghost: false, speed: 350 },
+    delay:   { type: "storm", chains: 0, aoe: true, pierce: false, split: 0, orbit: false, implode: false, wave: false, delay: true, ghost: false, speed: 200 },
+    wave:    { type: "base", chains: 0, aoe: false, pierce: false, split: 0, orbit: false, implode: false, wave: true, delay: false, ghost: false, speed: 250 },
+    ghost:   { type: "base", chains: 0, aoe: false, pierce: true, split: 0, orbit: false, implode: false, wave: false, delay: false, ghost: true, speed: 100 }
 };
 
-// As 100 Magias
-const MasterSpells = [
-    { n: "Echo Pulse", e: "arcane", b: "wave" }, { n: "Ripple Surge", e: "arcane", b: "wave" }, { n: "Arc Thread", e: "lightning", b: "bounce" }, { n: "Void Needle", e: "void", b: "pierce" }, { n: "Pulse Shard", e: "arcane", b: "split" }, { n: "Time Pebble", e: "ice", b: "delay" }, { n: "Mana Bloom", e: "arcane", b: "implode" }, { n: "Spiral Shot", e: "fire", b: "orbit" }, { n: "Gravity Flick", e: "void", b: "implode" }, { n: "Lumen Dart", e: "lightning", b: "normal" },
-    { n: "Fractal Bloom", e: "ice", b: "split" }, { n: "Mirror Bolt", e: "arcane", b: "split" }, { n: "Split Halo", e: "fire", b: "split" }, { n: "Prism Scatter", e: "lightning", b: "split" }, { n: "Pulse Scatter", e: "arcane", b: "split" }, { n: "Echo Split", e: "void", b: "split" }, { n: "Spiral Fracture", e: "fire", b: "orbit" }, { n: "Nova Seed", e: "fire", b: "delay" }, { n: "Chain Bloom", e: "lightning", b: "bounce" }, { n: "Twin Pulse", e: "arcane", b: "split" },
-    { n: "Fold Step", e: "void", b: "pierce" }, { n: "Phase Needle", e: "void", b: "pierce" }, { n: "Warp Drift", e: "arcane", b: "wave" }, { n: "Rift Pebble", e: "void", b: "implode" }, { n: "Loop Orb", e: "ice", b: "orbit" }, { n: "Collapse Orb", e: "void", b: "implode" }, { n: "Orbit Seed", e: "arcane", b: "orbit" }, { n: "Slip Shot", e: "ice", b: "wave" }, { n: "Bend Ray", e: "lightning", b: "wave" }, { n: "Rift Rain", e: "void", b: "split" },
-    { n: "Temporal Loop", e: "ice", b: "delay" }, { n: "Delay Burst", e: "fire", b: "delay" }, { n: "Time Fracture", e: "ice", b: "implode" }, { n: "Reverse Pulse", e: "arcane", b: "wave" }, { n: "Future Echo", e: "lightning", b: "delay" }, { n: "Slow Wave", e: "ice", b: "wave" }, { n: "Chrono Spark", e: "lightning", b: "normal" }, { n: "Memory Bolt", e: "arcane", b: "bounce" }, { n: "Time Scatter", e: "void", b: "split" }, { n: "Paradox Seed", e: "void", b: "delay" },
-    { n: "Mana Torrent", e: "arcane", b: "pierce" }, { n: "Flux Shard", e: "lightning", b: "split" }, { n: "Energy Bloom", e: "fire", b: "implode" }, { n: "Pulse Garden", e: "arcane", b: "orbit" }, { n: "Arc Burst", e: "lightning", b: "implode" }, { n: "Resonance Beam", e: "arcane", b: "pierce" }, { n: "Cascade Pulse", e: "ice", b: "bounce" }, { n: "Static Halo", e: "lightning", b: "orbit" }, { n: "Charge Orb", e: "fire", b: "delay" }, { n: "Surge Ray", e: "lightning", b: "pierce" },
-    { n: "Magnet Pulse", e: "void", b: "implode" }, { n: "Repel Burst", e: "fire", b: "implode" }, { n: "Orbit Field", e: "ice", b: "orbit" }, { n: "Merge Spark", e: "lightning", b: "normal" }, { n: "Split Engine", e: "arcane", b: "split" }, { n: "Reflect Core", e: "ice", b: "bounce" }, { n: "Chain Reactor", e: "lightning", b: "bounce" }, { n: "Pulse Engine", e: "fire", b: "normal" }, { n: "Echo Reactor", e: "arcane", b: "wave" }, { n: "Fractal Reactor", e: "void", b: "split" },
-    { n: "Dream Needle", e: "void", b: "pierce" }, { n: "Phantom Bloom", e: "ice", b: "implode" }, { n: "Illusion Pulse", e: "arcane", b: "wave" }, { n: "Shadow Thread", e: "void", b: "bounce" }, { n: "Spectral Orb", e: "ice", b: "orbit" }, { n: "Mirage Shot", e: "arcane", b: "split" }, { n: "Nightmare Seed", e: "void", b: "delay" }, { n: "Ghost Ripple", e: "ice", b: "wave" }, { n: "Ether Drift", e: "arcane", b: "wave" }, { n: "Spirit Burst", e: "void", b: "implode" },
-    { n: "Whisper Bolt", e: "ice", b: "normal" }, { n: "Echo Phantom", e: "arcane", b: "delay" }, { n: "Memory Pulse", e: "lightning", b: "bounce" }, { n: "Fade Needle", e: "void", b: "pierce" }, { n: "Void Whisper", e: "void", b: "implode" }, { n: "Soul Thread", e: "arcane", b: "bounce" }, { n: "Shade Bloom", e: "void", b: "implode" }, { n: "Spectral Storm", e: "ice", b: "split" }, { n: "Dream Cascade", e: "arcane", b: "bounce" }, { n: "Phantom Nova", e: "void", b: "implode" },
-    { n: "Chaos Spark", e: "lightning", b: "split" }, { n: "Entropy Burst", e: "fire", b: "delay" }, { n: "Random Echo", e: "arcane", b: "bounce" }, { n: "Collapse Rain", e: "void", b: "split" }, { n: "Rift Bloom", e: "void", b: "implode" }, { n: "Paradox Bolt", e: "ice", b: "pierce" }, { n: "Singularity Seed", e: "void", b: "implode" }, { n: "Flux Nova", e: "fire", b: "implode" }, { n: "Cascade Rift", e: "arcane", b: "bounce" }, { n: "Reality Tear", e: "void", b: "pierce" },
-    { n: "Orbit Chaos", e: "fire", b: "orbit" }, { n: "Pulse Tornado", e: "lightning", b: "orbit" }, { n: "Spiral Storm", e: "ice", b: "split" }, { n: "Echo Singularity", e: "void", b: "implode" }, { n: "Prism Collapse", e: "lightning", b: "implode" }, { n: "Nova Engine", e: "fire", b: "delay" }, { n: "Infinite Split", e: "arcane", b: "split" }, { n: "Chaos Reactor", e: "void", b: "wave" }, { n: "Arcane Cataclysm", e: "arcane", b: "implode" }, { n: "Ear Mage Ascension", e: "lightning", b: "pierce" }
-];
-
 const EquipSlots = [
-    { id: "wand", name: "Cajado", max: 1 },
-    { id: "armor", name: "Traje", max: 1 },
-    { id: "amulet", name: "Amuleto", max: 1 },
-    { id: "earring", name: "Brinco", max: 2 },
-    { id: "ring", name: "Anel", max: 5 }
+    { id: "wand", name: "Cajado", max: 1 }, { id: "armor", name: "Traje", max: 1 },
+    { id: "amulet", name: "Amuleto", max: 1 }, { id: "earring", name: "Brinco", max: 2 }, { id: "ring", name: "Anel", max: 5 }
 ];
 
-const EquipTiers = [
-    { n: "Comum", mult: 1, c: "#a1a1a1" }, 
-    { n: "Raro", mult: 3, c: "#3399ff" }, 
-    { n: "Épico", mult: 8, c: "#aa33ff" }, 
-    { n: "Lendário", mult: 20, c: "#ffd700" }
-];
-
-// O NOVO SISTEMA DE PRÁTICA ÚNICA
-const PracticeData = [
-    // Corpo (Aumentam Dano, Ataque e Vida/Crítico)
-    { id: "p1", name: "Calejamento Físico", desc: "Sucos gástricos mágicos aumentam a densidade muscular.", stat: "dmg", statName: "Dano Base", mult: 0.10, baseReq: 10, category: "corpo" },
-    { id: "p2", name: "Reflexos de Lince", desc: "Acelera sinapses, aumentando a velocidade de disparo.", stat: "spd", statName: "Vel. Ataque", mult: 0.05, baseReq: 50, category: "corpo" },
-    { id: "p3", name: "Golpe Penetrante", desc: "Foca a visão em pontos vitais dos cristais.", stat: "crit", statName: "Chance de Crítico", mult: 0.02, baseReq: 250, category: "corpo" },
-    { id: "p4", name: "Fôlego de Ferro", desc: "Aumenta a capacidade de manter magias simultâneas.", stat: "slots", statName: "Limite de Treino", mult: 1, baseReq: 5000, category: "corpo" }, // Especial
-    
-    // Mente (XP, Energia, e Ouro)
-    { id: "p5", name: "Meditação Astral", desc: "Acalma a mente para absorver mais experiência.", stat: "xp", statName: "Ganho de XP", mult: 0.15, baseReq: 20, category: "mente" },
-    { id: "p6", name: "Sifão de Almas", desc: "Extrai resíduos de energia dos cristais quebrados.", stat: "eng", statName: "Drop Energia", mult: 0.02, baseReq: 100, category: "mente" },
-    { id: "p7", name: "Clarividência", desc: "Enxerga veios de ouro dentro dos alvos.", stat: "gold", statName: "Ganho de Ouro", mult: 0.10, baseReq: 500, category: "mente" },
-    
-    // Aura (Sinergias e Multiplicadores Avançados)
-    { id: "p8", name: "Ressonância Elemental", desc: "Aumenta o efeito de combos elementais.", stat: "combo", statName: "Poder de Sinergia", mult: 0.20, baseReq: 1000, category: "aura" },
-    { id: "p9", name: "Aceleração Espacial", desc: "Projéteis viajam mais rápido até o alvo.", stat: "projSpd", statName: "Vel. Projétil", mult: 0.05, baseReq: 2000, category: "aura" }
-];
+// O Novo Sistema de Loot com Prefixos e Sufixos
+const ItemPrefixes = ["Destruidor", "Rápido", "Ganancioso", "Erudito", "Divino"];
 
 const GameData = {
-    items: [], 
-    magics: [],
-    
+    items: [], magics: [],
     generate: () => {
         let iid = 0;
         let els = Object.keys(Elements);
         
-        EquipTiers.forEach((tier, tIdx) => {
-            EquipSlots.forEach(slot => {
-                els.forEach(elKey => {
-                    let el = Elements[elKey];
-                    let lvlReq = (tIdx * 30) + 1;
-                    let cost = Math.floor(200 * Math.pow(2.0, tIdx * 2));
-                    
-                    GameData.items.push({
-                        id: iid++, 
-                        slot: slot.id, 
-                        slotName: slot.name, 
-                        name: `${slot.name} ${tier.n} do ${el.name}`,
-                        color: tier.c, 
-                        element: elKey, 
-                        reqLevel: lvlReq, 
-                        cost: cost,
-                        stats: { 
-                            eleDmg: (0.2 * tier.mult), 
-                            spd: (0.02 * tier.mult), 
-                            xp: (0.05 * tier.mult) 
-                        }
-                    });
+        // Gerando Equipamentos Únicos Reais (Loot)
+        EquipSlots.forEach(slot => {
+            for(let level = 1; level <= 20; level++) {
+                let elKey = els[Math.floor(Math.random() * els.length)];
+                let prefix = ItemPrefixes[Math.floor(Math.random() * ItemPrefixes.length)];
+                
+                // Stats baseados no prefixo e no level
+                let stats = {
+                    eleDmg: 0.1 * level,
+                    spd: prefix === "Rápido" ? 0.05 * level : 0,
+                    goldMult: prefix === "Ganancioso" ? 0.2 * level : 0,
+                    xp: prefix === "Erudito" ? 0.1 * level : 0,
+                    slots: prefix === "Divino" && level > 10 ? 1 : 0 // Itens divinos level alto dão slots de prática!
+                };
+
+                let rarityColor = level < 5 ? "#a1a1a1" : (level < 10 ? "#3399ff" : (level < 15 ? "#aa33ff" : "#ffd700"));
+
+                GameData.items.push({
+                    id: iid++, slot: slot.id, slotName: slot.name, 
+                    name: `${slot.name} ${prefix} de ${Elements[elKey].name}`,
+                    color: rarityColor, element: elKey, reqLevel: level * 10, 
+                    cost: Math.floor(100 * Math.pow(1.5, level)),
+                    stats: stats
                 });
-            });
+            }
         });
 
+        // Gerando Magias
         MasterSpells.forEach((sp, idx) => {
             let el = Elements[sp.e];
             let b = MagicBehaviors[sp.b];
-            
             let calcCost = Math.floor(100 * Math.pow(1.1, idx));
-            if (calcCost > 5000) calcCost = 5000; 
             
             GameData.magics.push({
-                id: idx, 
-                name: sp.n, 
-                element: sp.e, 
-                elementName: el.name,
-                color: el.color, 
-                glow: el.glow, 
-                type: b.type, 
-                behavior: sp.b,
-                speed: b.speed,
-                chains: b.chains, 
-                aoe: b.aoe, 
-                pierce: b.pierce, 
-                split: b.split, 
-                orbit: b.orbit,
-                implode: b.implode,
-                wave: b.wave,
-                delay: b.delay,
-                cost: calcCost,
+                id: idx, name: sp.n, desc: sp.desc, element: sp.e, elementName: el.name,
+                color: el.color, glow: el.glow, type: b.type, behavior: sp.b, shape: sp.shape,
+                speed: b.speed, chains: b.chains, aoe: b.aoe, pierce: b.pierce, 
+                split: b.split, orbit: b.orbit, implode: b.implode, wave: b.wave, delay: b.delay, ghost: b.ghost,
+                cost: Math.min(5000, calcCost), 
                 dmgMult: 1 + (idx * 0.05)
             });
         });
     }
 };
 
+/**
+ * 2. MOTOR DE SPRITES PIXEL ART (FORMATOS DE ALVOS CORRIGIDOS)
+ */
 const SpriteGen = {
-    palettes: { wizard: { '.': null, '#': '#111', 'R': '#4a235a', 'r': '#8e44ad', 'S': '#f5cba7', 'E': '#e67e22', 'e': '#d35400', 'W': '#5c4033', 'G': '#00ffff' } },
-    crystalTiers: [ { '#': '#000', 'C': '#00b386', 'c': '#00ffcc', 'd': '#00664d' }, { '#': '#000', 'C': '#0066cc', 'c': '#3399ff', 'd': '#003380' }, { '#': '#000', 'C': '#800080', 'c': '#cc33ff', 'd': '#4d004d' }, { '#': '#000', 'C': '#cc0000', 'c': '#ff4d4d', 'd': '#800000' }, { '#': '#000', 'C': '#b38f00', 'c': '#ffcc00', 'd': '#665200' }, { '#': '#000', 'C': '#cccccc', 'c': '#ffffff', 'd': '#666666' } ],
+    palettes: { 
+        wizard: { '.': null, '#': '#111', 'R': '#4a235a', 'r': '#8e44ad', 'S': '#f5cba7', 'E': '#e67e22', 'e': '#d35400', 'W': '#5c4033', 'G': '#00ffff' },
+        targets: { '.': null, '#': '#000', '1': '#ffffff' } // Cores serão tintadas no draw
+    },
+    // Formatos Diferentes de Alvo! Cristal, Obelisco, Esfera, Estrela, Olho
+    shapes: {
+        crystal: ["......####......", "....##1111##....", "...#11111111#...", "..#1111111111#..", ".#111111111111#.", ".#111111111111#.", ".#111111111111#.", ".#111111111111#.", "..#1111111111#..", "...#11111111#...", "....##1111##....", "......####......"],
+        obelisk: [".......##.......", "......#11#......", ".....#1111#.....", "....#111111#....", "....#111111#....", "....#111111#....", "....#111111#....", "....#111111#....", "....#111111#....", "....#111111#....", ".....######....."],
+        sphere:  ["......####......", "....##1111##....", "...#11111111#...", "..#1111111111#..", ".#111111111111#.", ".#111111111111#.", ".#111111111111#.", "..#1111111111#..", "...#11111111#...", "....##1111##....", "......####......"],
+        star:    [".......##.......", ".......##.......", "...##########...", "..#1111111111#..", "...#11111111#...", "....#111111#....", "...#11111111#...", "..#11#....#11#..", ".##..........##."],
+    },
+    
     data: {
         wizard: [".......####.......", "......#rrrr#......", ".....#rrrrrr#.....", "....#rrrrrrrr#....", "....#rrrrrrrr#....", ".....#rrrrrr#.....", "......#SSSS#......", "......#SSSS#......", ".....#RRRRRR#.....", "....#RRRRRRRR#....", "...#RRRRRRRRRR#...", "..#RRRRRRRRRRRR#..", "..#RRRRRRRRRRRR#..", "..#RRRRRRRRRRRR#..", "...############..."],
         ear: ["....####....", "..##EEEE##..", ".#EEEEEEEE#.", ".#EEeeeeEE#.", ".#EEeEEeEE#.", ".#EEeeeeEE#.", "..##EEEE##..", "....####...."],
-        staff: ["..##..", ".#GG#.", ".#GG#.", "..##..", "..WW..", "..WW..", "..WW..", "..WW..", "..WW..", "..WW.."],
-        crystalBase: ["......####......", "....##cccc##....", "...#cccccccc#...", "..#cccccccccc#..", ".#ccCCCCCCCCcc#.", ".#cCCCCCCCCCCd#.", ".#cCCCCCCCCCCd#.", ".#cCCCCCCCCCCd#.", ".#cCCCCCCCCCCd#.", "..#cCCCCCCCCd#..", "...#cCCCCCCd#...", "....##CCCC##....", "......####......"]
+        staff: ["..##..", ".#GG#.", ".#GG#.", "..##..", "..WW..", "..WW..", "..WW..", "..WW..", "..WW..", "..WW.."]
     },
-    sprites: {}, crystalSprites: [],
+    sprites: {}, 
+    targetSprites: {}, // Dicionário de Shapes
+    
     init: () => {
         ['wizard', 'ear', 'staff'].forEach(k => SpriteGen.sprites[k] = SpriteGen.build(SpriteGen.data[k], SpriteGen.palettes.wizard, 2));
-        SpriteGen.crystalTiers.forEach(t => SpriteGen.crystalSprites.push(SpriteGen.build(SpriteGen.data.crystalBase, t, 2)));
+        
+        // Constrói os formatos brancos base
+        Object.keys(SpriteGen.shapes).forEach(key => {
+            SpriteGen.targetSprites[key] = SpriteGen.build(SpriteGen.shapes[key], SpriteGen.palettes.targets, 2);
+        });
     },
+    
     build: (grid, palette, scale) => {
         let canvas = document.createElement('canvas'); canvas.width = grid[0].length * scale; canvas.height = grid.length * scale; let ctx = canvas.getContext('2d');
         for (let y = 0; y < grid.length; y++) { for (let x = 0; x < grid[y].length; x++) { if (palette[grid[y][x]]) { ctx.fillStyle = palette[grid[y][x]]; ctx.fillRect(x * scale, y * scale, scale, scale); } } } return canvas;

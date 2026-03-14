@@ -1,294 +1,137 @@
-/**
- * =======================================================
- * 2. CORE: ECONOMIA E JOGADOR (SISTEMA MU)
- * =======================================================
- */
+// js/core.js
+
 const Stats = { timePlayed: 0, totalGold: 0, totalEnergy: 0, targetsDestroyed: 0, spellsCast: 0 };
 
 const Economy = {
-    gold: 0, energy: 0, xpRate: 1, dpsHistory: [], targetLevel: 1, targetCount: 1,
+    gold: 0, energy: 0, xpRate: 1, dpsHistory: [], targetLevel: 1, targetCount: 1, goldMult: 1,
     
-    earnGold: (amt) => { Economy.gold += amt; Stats.totalGold += amt; UI.needsUpdate = true; },
+    earnGold: (amt) => { Economy.gold += amt * Economy.goldMult; Stats.totalGold += amt * Economy.goldMult; UI.needsUpdate = true; },
     earnEnergy: (amt) => { Economy.energy += amt; Stats.totalEnergy += amt; UI.needsUpdate = true; },
     
-    spendGold: (amt) => { 
-        if (Economy.gold >= amt) { Economy.gold -= amt; UI.needsUpdate = true; return true; } 
-        UI.showToast("Ouro Insuficiente!", true); return false; 
-    },
-    spendEnergy: (amt) => { 
-        if (Economy.energy >= amt) { Economy.energy -= amt; UI.needsUpdate = true; return true; } 
-        UI.showToast("Energia Insuficiente!", true); return false; 
-    },
+    spendGold: (amt) => { if (Economy.gold >= amt) { Economy.gold -= amt; UI.needsUpdate = true; return true; } UI.showToast("Ouro Insuficiente!", true); return false; },
+    spendEnergy: (amt) => { if (Economy.energy >= amt) { Economy.energy -= amt; UI.needsUpdate = true; return true; } UI.showToast("Energia Insuficiente!", true); return false; },
     
-    buyTargetLevel: () => { 
-        let c = Utils.calcCost(15, Economy.targetLevel - 1, 1.8); 
-        if (Economy.spendGold(c)) { 
-            Economy.targetLevel++; 
-            Combat.updateTargetsMaxHp(); 
-            UI.needsFullRebuild = true; 
-        } 
-    },
-    buyTargetCount: () => { 
-        let c = Utils.calcCost(50, Economy.targetCount - 1, 2.5); 
-        if (Economy.targetCount < 10 && Economy.spendGold(c)) { 
-            Economy.targetCount++; 
-            Combat.addTarget(); 
-            UI.needsFullRebuild = true; 
-        } 
-    }
+    buyTargetLevel: () => { let c = Utils.calcCost(15, Economy.targetLevel - 1, 1.8); if (Economy.spendGold(c)) { Economy.targetLevel++; Combat.updateTargetsMaxHp(); UI.needsFullRebuild = true; } },
+    buyTargetCount: () => { let c = Utils.calcCost(50, Economy.targetCount - 1, 2.5); if (Economy.targetCount < 10 && Economy.spendGold(c)) { Economy.targetCount++; Combat.addTarget(); UI.needsFullRebuild = true; } }
 };
 
 const Player = {
-    level: 1, xp: 0, resets: 0, statPoints: 0, 
-    pointsSpent: { dmg: 0, spd: 0, crit: 0, xp: 0, eng: 0 },
-    
+    level: 1, xp: 0, resets: 0, statPoints: 0, pointsSpent: { dmg: 0, spd: 0, crit: 0, xp: 0, eng: 0 },
     inventory: { items: [], magics: [] }, 
     equipped: { wand: [null], armor: [null], amulet: [null], earring: [null, null], ring: [null, null, null, null, null] },
     equippedMagics: [null, null, null, null, null], 
-    
-    comboActive: false, 
-    secretCombo: false, 
+    comboActive: false, secretCombo: false, practiceSlots: 1,
     
     getReqXp: () => Math.floor(100 * Math.pow(Player.level, 1.8)),
     
     gainXp: (amount) => {
         if (Player.level >= 400) return; 
-        
-        let oldLvl = Player.level; 
-        Player.xp += amount; 
-        let req = Player.getReqXp();
-        
-        while (Player.xp >= req && Player.level < 400) { 
-            Player.xp -= req; 
-            Player.level++; 
-            req = Player.getReqXp(); 
-        }
-        
-        if (Player.level >= 400) { 
-            Player.level = 400; 
-            Player.xp = req; 
-        } 
-        
-        // Dispara a Aura Mágica caso tenha subido de level
-        if (Player.level > oldLvl && typeof Renderer !== 'undefined') {
-            Renderer.levelUpAuraTimer = 2.0; 
-        }
-        
+        let oldLvl = Player.level; Player.xp += amount; let req = Player.getReqXp();
+        while (Player.xp >= req && Player.level < 400) { Player.xp -= req; Player.level++; req = Player.getReqXp(); }
+        if (Player.level >= 400) { Player.level = 400; Player.xp = req; } 
+        if (Player.level > oldLvl && typeof Renderer !== 'undefined') Renderer.levelUpAuraTimer = 2.0;
         UI.needsUpdate = true;
     },
     
-    addStat: (key) => { 
-        if (Player.statPoints > 0) { 
-            Player.statPoints--; 
-            Player.pointsSpent[key]++; 
-            Combat.recalculateStats(); 
-            UI.needsUpdate = true; 
-        } else {
-            UI.showToast("Sem pontos de atributo!", true);
-        }
-    },
+    addStat: (key) => { if (Player.statPoints > 0) { Player.statPoints--; Player.pointsSpent[key]++; Combat.recalculateStats(); UI.needsUpdate = true; } },
     
     buyItem: (id) => {
         let item = GameData.items[id];
         if(Player.inventory.items.includes(id)) return;
-        if(Economy.spendGold(item.cost)) { 
-            Player.inventory.items.push(id); 
-            UI.needsFullRebuild = true; 
-            UI.showToast(`Adquirido: ${item.name}`); 
-        }
+        if(Economy.spendGold(item.cost)) { Player.inventory.items.push(id); UI.needsFullRebuild = true; UI.showToast(`Adquirido: ${item.name}`); }
     },
     
     setEquip: (slotType, slotIdx, itemId) => {
         if (itemId !== null) {
             let item = GameData.items[itemId];
-            if(Player.level < item.reqLevel) { 
-                UI.showToast(`Requer Nível ${item.reqLevel}!`, true); 
-                return; 
-            }
+            if(Player.level < item.reqLevel) { UI.showToast(`Requer Nível ${item.reqLevel}!`, true); return; }
             let currentIndex = Player.equipped[slotType].indexOf(itemId);
-            if (currentIndex !== -1) {
-                Player.equipped[slotType][currentIndex] = null;
-            }
+            if (currentIndex !== -1) Player.equipped[slotType][currentIndex] = null;
         }
-        
         Player.equipped[slotType][slotIdx] = itemId;
-        Combat.recalculateStats(); 
-        UI.needsFullRebuild = true; 
-        UI.closeEquipModal();
+        Combat.recalculateStats(); UI.needsFullRebuild = true; UI.closeEquipModal();
     },
     
     buyMagic: (id) => {
         let m = GameData.magics[id];
         if(Player.inventory.magics.includes(id)) return;
-        if(Economy.spendEnergy(m.cost)) { 
-            Player.inventory.magics.push(id); 
-            UI.needsFullRebuild = true; 
-            UI.showToast("Magia Aprendida!"); 
-        }
+        if(Economy.spendEnergy(m.cost)) { Player.inventory.magics.push(id); UI.needsFullRebuild = true; UI.showToast("Magia Aprendida!"); }
     },
     
     setMagic: (slotIdx, itemId) => {
         if (itemId !== null) {
             let currentIndex = Player.equippedMagics.indexOf(itemId);
-            if (currentIndex !== -1) { 
-                Player.equippedMagics[currentIndex] = null; 
-            }
+            if (currentIndex !== -1) Player.equippedMagics[currentIndex] = null; 
         }
-        
         Player.equippedMagics[slotIdx] = itemId;
-        Player.checkCombos(); 
-        Combat.recalculateStats(); 
-        UI.needsFullRebuild = true; 
-        UI.closeEquipModal();
+        Player.checkCombos(); Combat.recalculateStats(); UI.needsFullRebuild = true; UI.closeEquipModal();
     },
     
     checkCombos: () => {
-        Player.comboActive = false;
-        Player.secretCombo = false;
-        
+        Player.comboActive = false; Player.secretCombo = false;
         let activeMags = Player.equippedMagics.filter(m => m !== null);
         
-        // Aura Suprema Elemental
         if(activeMags.length === 5) {
             let firstElement = GameData.magics[activeMags[0]].element;
             if(activeMags.every(id => GameData.magics[id].element === firstElement)) { 
-                Player.comboActive = firstElement; 
-                UI.showToast(`AURA SUPREMA DESPERTADA! (+100% Dano Global)`); 
+                Player.comboActive = firstElement; UI.showToast(`AURA SUPREMA DESPERTADA! (+100% Dano)`); 
             }
         }
         
-        // Combos Específicos Secretos
         let names = activeMags.map(id => GameData.magics[id].name);
-        if (names.includes("Echo Pulse") && names.includes("Ripple Surge")) {
-            Player.secretCombo = "Echo Storm";
-            UI.showToast("COMBO SECRETO: Echo Storm!");
-        } else if (names.includes("Arc Thread") && names.includes("Chain Bloom")) {
-            Player.secretCombo = "Lightning Web";
-            UI.showToast("COMBO SECRETO: Lightning Web!");
-        } else if (names.includes("Fractal Bloom") && names.includes("Split Halo")) {
-            Player.secretCombo = "Fractal Nova";
-            UI.showToast("COMBO SECRETO: Fractal Nova!");
-        } else if (names.includes("Void Needle") && names.includes("Collapse Orb")) {
-            Player.secretCombo = "Void Singularity";
-            UI.showToast("COMBO SECRETO: Void Singularity!");
-        } else if (names.includes("Orbit Seed") && names.includes("Pulse Garden")) {
-            Player.secretCombo = "Orbital Storm";
-            UI.showToast("COMBO SECRETO: Orbital Storm!");
-        }
+        if (names.includes("Echo Pulse") && names.includes("Ripple Surge")) { Player.secretCombo = "Echo Storm"; UI.showToast("Sinergia: Echo Storm!"); }
+        if (names.includes("Arc Thread") && names.includes("Chain Bloom")) { Player.secretCombo = "Lightning Web"; UI.showToast("Sinergia: Lightning Web!"); }
+        if (names.includes("Fractal Bloom") && names.includes("Split Halo")) { Player.secretCombo = "Fractal Nova"; UI.showToast("Sinergia: Fractal Nova!"); }
+        if (names.includes("Void Needle") && names.includes("Collapse Orb")) { Player.secretCombo = "Void Singularity"; UI.showToast("Sinergia: Void Singularity!"); }
+        if (names.includes("Orbit Seed") && names.includes("Pulse Garden")) { Player.secretCombo = "Orbital Storm"; UI.showToast("Sinergia: Orbital Storm!"); }
     }
 };
 
 const Prestige = {
-    calcPending: () => { 
-        if (Player.level < 350) return 0; 
-        return (Player.resets + 1) * 5; 
-    }, 
-    
+    calcPending: () => { if (Player.level < 350) return 0; return (Player.resets + 1) * 5; }, 
     muReset: () => {
-        if (Player.level < 350) { 
-            UI.showToast("Mínimo Nível 350!", true); 
-            return; 
-        }
-        
+        if (Player.level < 350) { UI.showToast("Mínimo Nível 350!", true); return; }
         let pts = Prestige.calcPending(); 
-        if (confirm(`Resetar concederá +${pts} Pontos. Ouro e Energia serão perdidos. ITENS, MAGIAS E PRÁTICA CONTINUAM. Continuar?`)) {
-            Player.resets++; 
-            Player.statPoints += pts; 
-            Player.level = 1; 
-            Player.xp = 0;
-            
-            Economy.gold = 0; 
-            Economy.energy = 0; 
-            Economy.targetLevel = 1; 
-            Economy.targetCount = 1;
-            
-            Combat.init(); 
-            UI.rebuildAll(); 
-            SaveSystem.save(true);
+        if (confirm(`Resetar concederá +${pts} Pontos. Ouro e Energia serão perdidos. ITENS, MAGIAS E PRÁTICA CONTINUAM.`)) {
+            Player.resets++; Player.statPoints += pts; Player.level = 1; Player.xp = 0;
+            Economy.gold = 0; Economy.energy = 0; Economy.targetLevel = 1; Economy.targetCount = 1;
+            Combat.init(); UI.rebuildAll(); SaveSystem.save(true);
         }
     }
 };
 
-/**
- * =======================================================
- * 3. NOVO SISTEMA DE PRÁTICA (Única e Infinita)
- * =======================================================
- */
 const Skills = {
-    activeSkills: ["p1"], // Array guarda os IDs de treino ativos
-    list: [],
-    
+    activeSkills: ["p1"], list: [],
     init: () => { 
-        // Inicializa pegando o objeto PracticeData criado em data.js
-        Skills.list = PracticeData.map(p => {
-            return {
-                id: p.id,
-                name: p.name,
-                desc: p.desc,
-                category: p.category,
-                stat: p.stat,
-                statName: p.statName,
-                mult: p.mult,
-                baseReq: p.baseReq,
-                level: 0,
-                xp: 0
-            };
-        });
+        Skills.list = [
+            { id: "p1", name: "Calejamento", desc: "Aumenta o Dano Base do Mago.", stat: "dmg", statName: "Dano", mult: 0.10, baseReq: 10, level: 0, xp: 0 },
+            { id: "p2", name: "Reflexos", desc: "Aumenta a velocidade de ataque.", stat: "spd", statName: "Vel. Ataque", mult: 0.05, baseReq: 50, level: 0, xp: 0 },
+            { id: "p3", name: "Foco Ocular", desc: "Aumenta Chance de Crítico.", stat: "crit", statName: "Crítico", mult: 0.02, baseReq: 250, level: 0, xp: 0 },
+            { id: "p4", name: "Mente Aberta", desc: "Ganha mais XP no geral.", stat: "xp", statName: "XP Global", mult: 0.15, baseReq: 20, level: 0, xp: 0 },
+            { id: "p5", name: "Sifão", desc: "Maior chance de dropar energia.", stat: "eng", statName: "Drop", mult: 0.02, baseReq: 100, level: 0, xp: 0 }
+        ];
     },
-    
     addXp: (amount) => {
-        if(!Skills.activeSkills || Skills.activeSkills.length === 0) Skills.activeSkills = ["p1"]; 
-        let leveledUp = false;
-        
+        if(Skills.activeSkills.length === 0) Skills.activeSkills = ["p1"]; let leveledUp = false;
         Skills.activeSkills.forEach(id => {
             let active = Skills.list.find(s => s.id === id);
             if(active) {
-                active.xp += amount; 
-                let req = active.baseReq * Math.pow(1.15, active.level); // Curva de XP
-                while (active.xp >= req) { 
-                    active.xp -= req; 
-                    active.level++; 
-                    req = active.baseReq * Math.pow(1.15, active.level); 
-                    leveledUp = true; 
-                }
+                active.xp += amount; let req = active.baseReq * Math.pow(1.15, active.level);
+                while (active.xp >= req) { active.xp -= req; active.level++; req = active.baseReq * Math.pow(1.15, active.level); leveledUp = true; }
             }
         });
-        
-        if (leveledUp) { 
-            Combat.recalculateStats(); 
-            UI.needsFullRebuild = true; 
-        }
+        if (leveledUp) { Combat.recalculateStats(); UI.needsFullRebuild = true; }
     },
-    
-    update: (dt) => { 
-        Skills.addXp(Economy.xpRate * 10 * dt); 
-    },
-    
+    update: (dt) => { Skills.addXp(Economy.xpRate * 10 * dt); },
     toggleActive: (id) => { 
-        // O limite de slots depende do level da skill "Fôlego de Ferro" (p4)
-        let folegoSkill = Skills.list.find(s => s.id === "p4");
-        let maxActive = 1 + (folegoSkill ? folegoSkill.level : 0); 
-        
-        // Sempre dá +1 slot de prática pra cada Reset dado no MU System
-        maxActive += Player.resets;
-
+        let maxActive = Player.practiceSlots; // Slot definido pelos Itens + Resets
         if (Skills.activeSkills.includes(id)) { 
-            // Só deixa remover se não for o último, não faz sentido ficar sem treinar nada
-            if (Skills.activeSkills.length > 1) {
-                Skills.activeSkills = Skills.activeSkills.filter(s => s !== id); 
-            }
+            if (Skills.activeSkills.length > 1) Skills.activeSkills = Skills.activeSkills.filter(s => s !== id); 
         } else { 
             Skills.activeSkills.push(id); 
-            // Se excedeu o limite, remove a mais antiga
-            if (Skills.activeSkills.length > maxActive) {
-                Skills.activeSkills.shift(); 
-            }
+            if (Skills.activeSkills.length > maxActive) Skills.activeSkills.shift(); 
         } 
         UI.needsFullRebuild = true; 
     },
-    
-    getBonus: (statKey) => {
-        let skill = Skills.list.find(s => s.stat === statKey);
-        return skill ? (skill.level * skill.mult) : 0;
-    }
+    getBonus: (statKey) => { let s = Skills.list.find(sk => sk.stat === statKey); return s ? (s.level * s.mult) : 0; }
 };

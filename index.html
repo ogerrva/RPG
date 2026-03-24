@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Twisting Slash: Neon RPG</title>
+    <style>
+        /* ==========================================================================
+           ESTILOS GERAIS E PALETA NEON
+           ========================================================================== */
+        :root {
+            --bg-color: #090a0f;
+            --panel-bg: #12131c;
+            --border-color: #2a2b3d;
+            --text-main: #e2e2ee;
+            --text-muted: #7a7b99;
+            --accent-color: #00e5ff;
+            --danger-color: #ff2a55;
+            --mana-color: #2a75ff;
+            --gold-color: #ffcc00;
+            --xp-color: #00ff88;
+            --essence-color: #b366ff;
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body, html {
+            width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            overflow: hidden; user-select: none;
+        }
+
+        /* ==========================================================================
+           LAYOUT PRINCIPAL
+           ========================================================================== */
+        #game-container {
+            display: flex; flex-direction: row;
+            width: 100vw; height: 100vh;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            display: flex; flex-direction: column;
+            padding: 20px; overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        #panel-left { width: 320px; border-right: 2px solid var(--border-color); }
+        #panel-right { width: 320px; border-left: 2px solid var(--border-color); }
+
+        #panel-center {
+            flex: 1; position: relative;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #050508 100%);
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden;
+        }
+
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* ==========================================================================
+           TIPOGRAFIA E COMPONENTES
+           ========================================================================== */
+        h1, h2, h3 {
+            text-align: center; margin-bottom: 15px;
+            color: #fff; text-transform: uppercase;
+            letter-spacing: 2px; font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px; text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        .stat-group {
+            margin-bottom: 15px; background: rgba(0, 0, 0, 0.3);
+            padding: 12px; border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px; font-size: 13px;
+        }
+
+        .stat-value { font-weight: bold; font-variant-numeric: tabular-nums; }
+
+        .color-gold { color: var(--gold-color); text-shadow: 0 0 5px rgba(255, 204, 0, 0.5); }
+        .color-essence { color: var(--essence-color); text-shadow: 0 0 5px rgba(179, 102, 255, 0.5); }
+        .color-mana { color: var(--mana-color); text-shadow: 0 0 5px rgba(42, 117, 255, 0.5); }
+        .color-accent { color: var(--accent-color); text-shadow: 0 0 5px rgba(0, 229, 255, 0.5); }
+        .color-danger { color: var(--danger-color); text-shadow: 0 0 5px rgba(255, 42, 85, 0.5); }
+        .color-xp { color: var(--xp-color); text-shadow: 0 0 5px rgba(0, 255, 136, 0.5); }
+
+        /* ==========================================================================
+           BARRAS DE PROGRESSO
+           ========================================================================== */
+        .progress-container {
+            width: 100%; height: 14px;
+            background-color: #000; border: 1px solid var(--border-color);
+            border-radius: 4px; margin-top: 5px; position: relative; overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%; width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .bg-mana { background: linear-gradient(90deg, #1a44cc, var(--mana-color)); box-shadow: 0 0 10px var(--mana-color); }
+        .bg-xp { background: linear-gradient(90deg, #009955, var(--xp-color)); box-shadow: 0 0 10px var(--xp-color); }
+        .bg-exhausted { background-color: var(--danger-color); box-shadow: 0 0 10px var(--danger-color); }
+
+        /* ==========================================================================
+           BOTÕES
+           ========================================================================== */
+        .btn {
+            width: 100%; background-color: #222230; color: var(--text-main);
+            border: 1px solid var(--border-color); padding: 12px; margin-top: 5px;
+            cursor: pointer; font-family: var(--font-main); font-size: 12px;
+            text-transform: uppercase; font-weight: bold; border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover:not(:disabled) { background-color: #2f2f42; border-color: var(--accent-color); box-shadow: 0 0 10px rgba(0, 229, 255, 0.3); }
+        .btn:active:not(:disabled) { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .btn-add {
+            width: 40px; height: 30px; padding: 0; margin: 0;
+            background-color: rgba(0, 229, 255, 0.1); border-color: var(--accent-color); color: var(--accent-color);
+        }
+        .btn-add:hover:not(:disabled) { background-color: var(--accent-color); color: #000; }
+
+        .btn-gold { border-color: var(--gold-color); color: var(--gold-color); background: rgba(255, 204, 0, 0.05); }
+        .btn-gold:hover:not(:disabled) { background-color: var(--gold-color); color: #000; box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); }
+
+        .btn-prestige { border-color: var(--essence-color); color: var(--essence-color); background: rgba(179, 102, 255, 0.05); margin-top: auto; }
+        .btn-prestige:hover:not(:disabled) { background-color: var(--essence-color); color: #fff; box-shadow: 0 0 15px rgba(179, 102, 255, 0.4); }
+
+        /* ==========================================================================
+           NOTIFICAÇÕES
+           ========================================================================== */
+        #notification-area {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; pointer-events: none; text-align: center; width: 100%;
+        }
+
+        .notification {
+            background-color: rgba(0, 0, 0, 0.9); border: 1px solid var(--accent-color);
+            color: #fff; padding: 10px 20px; margin-bottom: 8px; font-size: 13px;
+            display: inline-block; border-radius: 6px; box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+            animation: slideDown 3s forwards; font-weight: bold;
+        }
+
+        @keyframes slideDown {
+            0% { opacity: 0; transform: translateY(-20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        /* ==========================================================================
+           RESPONSIVIDADE (MOBILE)
+           ========================================================================== */
+        @media (max-width: 768px) {
+            #game-container { flex-direction: column; }
+            #panel-center { flex: none; height: 40vh; border-bottom: 2px solid var(--border-color); }
+            #panel-left, #panel-right { width: 100%; flex: 1; border: none; }
+            #panel-left { border-bottom: 2px solid var(--border-color); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    
+    <!-- PAINEL ESQUERDO: LEVEL E ATRIBUTOS -->
+    <div class="panel" id="panel-left">
+        <h2>Personagem</h2>
+        
+        <div class="stat-group" style="border-color: var(--xp-color); background: rgba(0, 255, 136, 0.05);">
+            <div class="stat-row">
+                <span class="color-xp" style="font-size: 16px; font-weight: bold;">Nível <span id="val-level">1</span></span>
+                <span class="stat-value color-xp"><span id="val-xp-current">0</span> / <span id="val-xp-max">100</span> XP</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-fill bg-xp" id="bar-xp"></div>
+            </div>
+            <div style="text-align: center; margin-top: 10px; font-size: 12px;">
+                Pontos Disponíveis: <span id="val-stat-points" class="color-accent" style="font-size: 16px; font-weight: bold;">0</span>
+            </div>
+        </div>
+
+        <div class="stat-group">
+            <div class="stat-row">
+                <div>
+                    <span style="font-weight: bold; color: #fff;">Força (STR)</span>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Aumenta o Dano Base</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="stat-value" id="val-str" style="font-size: 16px;">0</span>
+                    <button class="btn btn-add" id="btn-add-str" onclick="Game.upgradeAttribute('str')">+1</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-group">
+            <div class="stat-row">
+                <div>
+                    <span style="font-weight: bold; color: #fff;">Velocidade (AGI)</span>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Aumenta a Rotação</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="stat-value" id="val-agi" style="font-size: 16px;">0</span>
+                    <button class="btn btn-add" id="btn-add-agi" onclick="Game.upgradeAttribute('agi')">+1</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-group">
+            <div class="stat-row">
+                <div>
+                    <span style="font-weight: bold; color: #fff;">Energia (ENE)</span>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Mana e Sustentação</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="stat-value" id="val-ene" style="font-size: 16px;">0</span>
+                    <button class="btn btn-add" id="btn-add-ene" onclick="Game.upgradeAttribute('ene')">+1</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAINEL CENTRAL: COMBATE VISUAL -->
+    <div id="panel-center">
+        <canvas id="combat-canvas"></canvas>
+        <div id="notification-area"></div>
+    </div>
+
+    <!-- PAINEL DIREITO: INIMIGOS, RECURSOS E STATUS -->
+    <div class="panel" id="panel-right">
+        <h2>Combate & Recursos</h2>
+        
+        <div class="stat-group">
+            <div class="stat-row">
+                <span>Ouro</span>
+                <span class="stat-value color-gold" id="val-gold">0</span>
+            </div>
+            <div class="stat-row">
+                <span>Essência Arcana</span>
+                <span class="stat-value color-essence" id="val-essence">0</span>
+            </div>
+        </div>
+
+        <div class="stat-group" style="border-color: var(--gold-color); background: rgba(255, 204, 0, 0.05);">
+            <div class="stat-row">
+                <span class="color-gold" style="font-weight: bold;">Tier do Inimigo</span>
+                <span class="stat-value color-gold" style="font-size: 16px;">T-<span id="val-enemy-tier">1</span></span>
+            </div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 10px;">Inimigos mais fortes dão mais XP e Ouro.</div>
+            <button class="btn btn-gold" id="btn-upg-tier" onclick="Game.upgradeEnemyTier()">
+                Evoluir Inimigos (Custo: <span id="cost-tier">100</span> Ouro)
+            </button>
+        </div>
+
+        <div class="stat-group">
+            <div class="stat-row">
+                <span>Dano por Hit</span>
+                <span class="stat-value color-accent" id="val-damage">1.00</span>
+            </div>
+            <div class="stat-row">
+                <span>DPS Estimado</span>
+                <span class="stat-value color-danger" id="val-dps">0.00</span>
+            </div>
+        </div>
+
+        <div class="stat-group">
+            <div class="stat-row">
+                <span>Mana</span>
+                <span class="stat-value color-mana"><span id="val-mana-current">100</span> / <span id="val-mana-max">100</span></span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-fill bg-mana" id="bar-mana"></div>
+            </div>
+            <div class="stat-row" style="margin-top: 5px; font-size: 10px; color: var(--text-muted);">
+                <span id="lbl-mana-status">Regenerando...</span>
+            </div>
+        </div>
+
+        <button class="btn btn-prestige" id="btn-prestige" onclick="Game.prestige()">
+            Ascensão (Requer Nível 50)
+        </button>
+        <div style="font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 5px;">
+            Multiplicador Global: <span id="val-multiplier" class="color-essence">1.00x</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+/**
+ * ==========================================================================
+ * LÓGICA DO JOGO - TWISTING SLASH IDLE (NEON RPG)
+ * ==========================================================================
+ */
+
+const Utils = {
+    formatNumber: (num) => {
+        if (num < 1000) return Math.floor(num).toString();
+        const suffixes = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx"];
+        const suffixNum = Math.floor(("" + Math.floor(num)).length / 3);
+        let shortValue = parseFloat((suffixNum !== 0 ? (num / Math.pow(1000, suffixNum)) : num).toPrecision(3));
+        if (shortValue % 1 !== 0) shortValue = shortValue.toFixed(2);
+        return shortValue + suffixes[suffixNum];
+    }
+};
+
+const Game = {
+    // Estado persistente (Salvo no LocalStorage)
+    state: {
+        playerLevel: 1,
+        playerXp: 0,
+        statPoints: 0,
+        str: 0,
+        agi: 0,
+        ene: 0,
+        gold: 0,
+        essence: 0,
+        enemyTier: 1,
+        mana: 100,
+        lastSaveTime: Date.now()
+    },
+
+    // Variáveis de tempo de execução (Resetam ao fechar)
+    runtime: {
+        lastFrameTime: performance.now(),
+        saveTimer: 0,
+        rotationAngle: 0,
+        enemies: [],
+        damageTexts: [],
+        particles: [],
+        isExhausted: false,
+        
+        // Atributos calculados
+        xpRequired: 100,
+        maxMana: 100,
+        manaRegen: 5,
+        manaCost: 10,
+        damagePerHit: 1,
+        rotationSpeed: 1,
+        attackRadius: 90,
+        globalMultiplier: 1
+    },
+
+    // Configurações de balanceamento
+    config: {
+        baseXpReq: 100,
+        xpReqMultiplier: 1.4,
+        
+        baseEnemyHp: 20,
+        enemyHpMultiplier: 1.5,
+        
+        baseEnemyXp: 15,
+        enemyXpMultiplier: 1.4,
+        
+        baseEnemyGold: 2,
+        enemyGoldMultiplier: 1.4,
+        
+        baseTierCost: 50,
+        tierCostMultiplier: 2.0,
+        
+        prestigeLevelReq: 50
+    },
+
+    init: function() {
+        this.load();
+        this.calculateStats();
+        Renderer.init();
+        this.spawnEnemy();
+        requestAnimationFrame(this.loop.bind(this));
+    },
+
+    // ==========================================================================
+    // SISTEMA DE SAVE
+    // ==========================================================================
+    save: function() {
+        this.state.lastSaveTime = Date.now();
+        localStorage.setItem('twistingSlashNeonSave', JSON.stringify(this.state));
+    },
+
+    load: function() {
+        const savedData = localStorage.getItem('twistingSlashNeonSave');
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                Object.assign(this.state, parsed);
+                // Simulação offline básica
+                const now = Date.now();
+                const secondsOffline = Math.min((now - this.state.lastSaveTime) / 1000, 86400);
+                if (secondsOffline > 60) {
+                    this.calculateStats();
+                    const avgDps = (this.runtime.damagePerHit * (this.runtime.rotationSpeed * 2)) * 0.5; 
+                    const totalDmg = avgDps * secondsOffline;
+                    const enemyHp = this.config.baseEnemyHp * Math.pow(this.config.enemyHpMultiplier, this.state.enemyTier);
+                    const kills = Math.floor(totalDmg / enemyHp);
+                    
+                    if (kills > 0) {
+                        const goldEarned = kills * (this.config.baseEnemyGold * Math.pow(this.config.enemyGoldMultiplier, this.state.enemyTier));
+                        const xpEarned = kills * (this.config.baseEnemyXp * Math.pow(this.config.enemyXpMultiplier, this.state.enemyTier));
+                        this.state.gold += goldEarned;
+                        this.gainXp(xpEarned);
+                        UI.showNotification(`Offline: ${Utils.formatNumber(goldEarned)} Ouro e ${Utils.formatNumber(xpEarned)} XP!`);
+                    }
+                }
+            } catch (e) { console.error("Save corrompido."); }
+        }
+    },
+
+    // ==========================================================================
+    // SISTEMA DE LEVEL E ATRIBUTOS
+    // ==========================================================================
+    calculateStats: function() {
+        this.runtime.globalMultiplier = 1 + (this.state.essence * 0.1);
+        this.runtime.xpRequired = Math.floor(this.config.baseXpReq * Math.pow(this.config.xpReqMultiplier, this.state.playerLevel - 1));
+
+        // FORÇA: Dano Base (Crescimento exponencial leve)
+        const baseDamage = 1 + (this.state.str * 0.5) + Math.pow(this.state.str, 1.2) * 0.1;
+        
+        // VELOCIDADE: Rotações por segundo
+        const baseSpeed = 1 + (this.state.agi * 0.05);
+        
+        // ENERGIA: Sistema de Mana
+        this.runtime.maxMana = 100 + (this.state.ene * 15);
+        this.runtime.manaRegen = 5 + (this.state.ene * 2);
+        const manaCostReduction = 1 / (1 + (this.state.ene * 0.02));
+
+        if (this.state.mana <= 0) {
+            this.runtime.isExhausted = true;
+            this.runtime.damagePerHit = (baseDamage * 0.1) * this.runtime.globalMultiplier;
+            this.runtime.rotationSpeed = baseSpeed * 0.3;
+        } else {
+            this.runtime.isExhausted = false;
+            this.runtime.damagePerHit = baseDamage * this.runtime.globalMultiplier;
+            this.runtime.rotationSpeed = baseSpeed;
+        }
+
+        this.runtime.manaCost = (10 * baseSpeed) * manaCostReduction;
+    },
+
+    gainXp: function(amount) {
+        this.state.playerXp += amount;
+        let leveledUp = false;
+
+        while (this.state.playerXp >= this.runtime.xpRequired) {
+            this.state.playerXp -= this.runtime.xpRequired;
+            this.state.playerLevel++;
+            this.state.statPoints += 20; // 20 Pontos por level!
+            this.calculateStats();
+            leveledUp = true;
+        }
+
+        if (leveledUp) {
+            UI.showNotification(`LEVEL UP! Nível ${this.state.playerLevel} alcançado! +20 Pontos.`);
+            Renderer.triggerLevelUpEffect();
+        }
+        UI.update();
+    },
+
+    upgradeAttribute: function(attr) {
+        if (this.state.statPoints > 0) {
+            this.state.statPoints--;
+            this.state[attr]++;
+            this.calculateStats();
+            UI.update();
+        }
+    },
+
+    // ==========================================================================
+    // SISTEMA DE INIMIGOS (TIERS)
+    // ==========================================================================
+    getTierCost: function() {
+        return Math.floor(this.config.baseTierCost * Math.pow(this.config.tierCostMultiplier, this.state.enemyTier - 1));
+    },
+
+    upgradeEnemyTier: function() {
+        const cost = this.getTierCost();
+        if (this.state.gold >= cost) {
+            this.state.gold -= cost;
+            this.state.enemyTier++;
+            
+            // Limpa inimigos atuais e spawna do novo tier
+            this.runtime.enemies = [];
+            this.spawnEnemy();
+            UI.update();
+            UI.showNotification(`Inimigos evoluídos para o Tier ${this.state.enemyTier}!`);
+        }
+    },
+
+    spawnEnemy: function() {
+        const tier = this.state.enemyTier;
+        const maxHp = this.config.baseEnemyHp * Math.pow(this.config.enemyHpMultiplier, tier);
+        
+        // Cores baseadas no Tier
+        const colors = ["#00ff88", "#00d2ff", "#b366ff", "#ff3366", "#ffd700"];
+        const color = colors[(tier - 1) % colors.length];
+
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 160; // Fora do raio de ataque
+
+        this.runtime.enemies.push({
+            id: Math.random(),
+            hp: maxHp,
+            maxHp: maxHp,
+            x: Math.cos(angle) * distance,
+            y: Math.sin(angle) * distance,
+            color: color,
+            tier: tier,
+            radius: 15 + (tier % 3) * 2, // Varia o tamanho levemente
+            flash: 0
+        });
+    },
+
+    damageEnemy: function(enemy, damage) {
+        enemy.hp -= damage;
+        enemy.flash = 0.1; // Efeito visual de hit
+        
+        this.runtime.damageTexts.push({
+            x: enemy.x + (Math.random() * 20 - 10),
+            y: enemy.y - 15,
+            text: Utils.formatNumber(damage),
+            life: 0.8
+        });
+
+        if (enemy.hp <= 0) {
+            this.killEnemy(enemy);
+        }
+    },
+
+    killEnemy: function(enemy) {
+        this.runtime.enemies = this.runtime.enemies.filter(e => e.id !== enemy.id);
+        
+        // Recompensas baseadas no Tier
+        const goldReward = this.config.baseEnemyGold * Math.pow(this.config.enemyGoldMultiplier, enemy.tier);
+        const xpReward = this.config.baseEnemyXp * Math.pow(this.config.enemyXpMultiplier, enemy.tier);
+        
+        this.state.gold += goldReward;
+        this.gainXp(xpReward);
+
+        // Efeito de explosão (Partículas)
+        Renderer.createExplosion(enemy.x, enemy.y, enemy.color);
+
+        this.spawnEnemy();
+    },
+
+    prestige: function() {
+        if (this.state.playerLevel < this.config.prestigeLevelReq) return;
+
+        const essenceGain = Math.floor(this.state.playerLevel / 10);
+        
+        this.state.essence += essenceGain;
+        this.state.playerLevel = 1;
+        this.state.playerXp = 0;
+        this.state.statPoints = 0;
+        this.state.str = 0;
+        this.state.agi = 0;
+        this.state.ene = 0;
+        this.state.gold = 0;
+        this.state.enemyTier = 1;
+        this.state.mana = 100;
+        
+        this.runtime.enemies = [];
+        this.spawnEnemy();
+        this.calculateStats();
+        this.save();
+        UI.update();
+        UI.showNotification(`Ascensão concluída! +${essenceGain} Essência Arcana.`);
+    },
+
+    // ==========================================================================
+    // LOOP PRINCIPAL
+    // ==========================================================================
+    loop: function(timestamp) {
+        const dt = (timestamp - this.runtime.lastFrameTime) / 1000;
+        this.runtime.lastFrameTime = timestamp;
+        const safeDt = Math.min(dt, 0.1);
+
+        this.updateLogic(safeDt);
+        Renderer.draw(safeDt);
+        UI.update();
+
+        this.runtime.saveTimer += safeDt;
+        if (this.runtime.saveTimer >= 5) {
+            this.save();
+            this.runtime.saveTimer = 0;
+        }
+
+        requestAnimationFrame(this.loop.bind(this));
+    },
+
+    updateLogic: function(dt) {
+        this.calculateStats();
+
+        // Mana
+        if (!this.runtime.isExhausted) {
+            this.state.mana -= this.runtime.manaCost * dt;
+        }
+        this.state.mana += this.runtime.manaRegen * dt;
+        if (this.state.mana > this.runtime.maxMana) this.state.mana = this.runtime.maxMana;
+        if (this.state.mana < 0) this.state.mana = 0;
+
+        // Rotação
+        const rotationDelta = (this.runtime.rotationSpeed * Math.PI * 2) * dt;
+        const previousAngle = this.runtime.rotationAngle;
+        this.runtime.rotationAngle = (this.runtime.rotationAngle + rotationDelta) % (Math.PI * 2);
+
+        // Inimigos e Colisão
+        this.runtime.enemies.forEach(enemy => {
+            if (enemy.flash > 0) enemy.flash -= dt;
+
+            const distToCenter = Math.hypot(enemy.x, enemy.y);
+            if (distToCenter > 40) {
+                const moveSpeed = 30 * dt;
+                enemy.x -= (enemy.x / distToCenter) * moveSpeed;
+                enemy.y -= (enemy.y / distToCenter) * moveSpeed;
+            }
+
+            if (distToCenter <= this.runtime.attackRadius + enemy.radius) {
+                let enemyAngle = Math.atan2(enemy.y, enemy.x);
+                if (enemyAngle < 0) enemyAngle += Math.PI * 2;
+
+                let hit = false;
+                if (previousAngle < this.runtime.rotationAngle) {
+                    if (enemyAngle >= previousAngle && enemyAngle <= this.runtime.rotationAngle) hit = true;
+                } else {
+                    if (enemyAngle >= previousAngle || enemyAngle <= this.runtime.rotationAngle) hit = true;
+                }
+
+                const rotationsThisFrame = Math.floor(rotationDelta / (Math.PI * 2));
+                let totalHits = hit ? 1 : 0;
+                totalHits += rotationsThisFrame;
+
+                if (totalHits > 0) {
+                    this.damageEnemy(enemy, this.runtime.damagePerHit * totalHits);
+                }
+            }
+        });
+
+        // Textos
+        this.runtime.damageTexts.forEach(text => {
+            text.y -= 30 * dt;
+            text.life -= dt;
+        });
+        this.runtime.damageTexts = this.runtime.damageTexts.filter(t => t.life > 0);
+
+        // Partículas
+        this.runtime.particles.forEach(p => {
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.life -= dt;
+        });
+        this.runtime.particles = this.runtime.particles.filter(p => p.life > 0);
+    }
+};
+
+/**
+ * ==========================================================================
+ * RENDERIZADOR (EFEITOS VISUAIS NEON)
+ * ==========================================================================
+ */
+const Renderer = {
+    canvas: null,
+    ctx: null,
+    width: 0,
+    height: 0,
+    levelUpTimer: 0,
+
+    init: function() {
+        this.canvas = document.getElementById('combat-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', this.resize.bind(this));
+    },
+
+    resize: function() {
+        const parent = this.canvas.parentElement;
+        this.width = parent.clientWidth;
+        this.height = parent.clientHeight;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+    },
+
+    createExplosion: function(x, y, color) {
+        for (let i = 0; i < 15; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 100 + 50;
+            Game.runtime.particles.push({
+                x: x, y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                color: color,
+                life: Math.random() * 0.5 + 0.2,
+                maxLife: 0.7
+            });
+        }
+    },
+
+    triggerLevelUpEffect: function() {
+        this.levelUpTimer = 1.5;
+    },
+
+    drawEnemyShape: function(ctx, x, y, radius, tier, color, isFlashing) {
+        ctx.save();
+        ctx.translate(x, y);
+        
+        // Rotação lenta do inimigo
+        ctx.rotate(performance.now() / 1000 * (tier % 2 === 0 ? 1 : -1));
+
+        ctx.shadowBlur = isFlashing ? 20 : 10;
+        ctx.shadowColor = isFlashing ? "#fff" : color;
+        ctx.fillStyle = isFlashing ? "#fff" : "#111";
+        ctx.strokeStyle = isFlashing ? "#fff" : color;
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        const shapeType = tier % 5;
+        
+        if (shapeType === 1) { // Círculo
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        } else if (shapeType === 2) { // Quadrado
+            ctx.rect(-radius, -radius, radius*2, radius*2);
+        } else if (shapeType === 3) { // Triângulo
+            ctx.moveTo(0, -radius);
+            ctx.lineTo(radius, radius);
+            ctx.lineTo(-radius, radius);
+            ctx.closePath();
+        } else if (shapeType === 4) { // Losango
+            ctx.moveTo(0, -radius);
+            ctx.lineTo(radius, 0);
+            ctx.lineTo(0, radius);
+            ctx.lineTo(-radius, 0);
+            ctx.closePath();
+        } else { // Estrela (Tier 5, 10, etc)
+            for (let i = 0; i < 5; i++) {
+                ctx.lineTo(Math.cos((18 + i * 72) / 180 * Math.PI) * radius, -Math.sin((18 + i * 72) / 180 * Math.PI) * radius);
+                ctx.lineTo(Math.cos((54 + i * 72) / 180 * Math.PI) * (radius/2), -Math.sin((54 + i * 72) / 180 * Math.PI) * (radius/2));
+            }
+            ctx.closePath();
+        }
+
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    },
+
+    draw: function(dt) {
+        const ctx = this.ctx;
+        const cx = this.width / 2;
+        const cy = this.height / 2;
+
+        // Fundo com rastro (Motion Blur leve)
+        ctx.fillStyle = "rgba(5, 5, 8, 0.3)";
+        ctx.fillRect(0, 0, this.width, this.height);
+
+        // Efeito de Level Up (Pulso de fundo)
+        if (this.levelUpTimer > 0) {
+            this.levelUpTimer -= dt;
+            const alpha = Math.max(0, this.levelUpTimer / 1.5) * 0.2;
+            ctx.fillStyle = `rgba(0, 255, 136, ${alpha})`;
+            ctx.fillRect(0, 0, this.width, this.height);
+        }
+
+        // Área de alcance
+        ctx.beginPath();
+        ctx.arc(cx, cy, Game.runtime.attackRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.stroke();
+
+        // Partículas
+        ctx.globalCompositeOperation = "lighter";
+        Game.runtime.particles.forEach(p => {
+            const alpha = p.life / p.maxLife;
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = alpha;
+            ctx.beginPath();
+            ctx.arc(cx + p.x, cy + p.y, 2, 0, Math.PI*2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1.0;
+        ctx.globalCompositeOperation = "source-over";
+
+        // Inimigos
+        Game.runtime.enemies.forEach(enemy => {
+            this.drawEnemyShape(ctx, cx + enemy.x, cy + enemy.y, enemy.radius, enemy.tier, enemy.color, enemy.flash > 0);
+            
+            // Barra de HP
+            const hpPercent = Math.max(0, enemy.hp / enemy.maxHp);
+            ctx.fillStyle = "rgba(0,0,0,0.8)";
+            ctx.fillRect(cx + enemy.x - 15, cy + enemy.y - enemy.radius - 12, 30, 4);
+            ctx.fillStyle = enemy.color;
+            ctx.fillRect(cx + enemy.x - 15, cy + enemy.y - enemy.radius - 12, 30 * hpPercent, 4);
+        });
+
+        // Jogador (Centro)
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = Game.runtime.isExhausted ? "#ff2a55" : "#00e5ff";
+        ctx.beginPath();
+        ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+        ctx.fillStyle = "#fff";
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Twisting Slash (Lâmina Neon)
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(Game.runtime.rotationAngle);
+        
+        const bladeColor = Game.runtime.isExhausted ? "#ff2a55" : "#00e5ff";
+        
+        // Rastro da lâmina (Gradiente angular simulado com arcos de opacidade)
+        for(let i = 1; i <= 5; i++) {
+            ctx.beginPath();
+            ctx.arc(0, 0, Game.runtime.attackRadius, -Math.PI/4 - (i*0.2), Math.PI/4 - (i*0.2));
+            ctx.lineWidth = 6 - i;
+            ctx.strokeStyle = Game.runtime.isExhausted ? `rgba(255, 42, 85, ${0.5/i})` : `rgba(0, 229, 255, ${0.5/i})`;
+            ctx.stroke();
+        }
+
+        // Lâmina principal
+        ctx.beginPath();
+        ctx.arc(0, 0, Game.runtime.attackRadius, -Math.PI/4, Math.PI/4);
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#fff";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = bladeColor;
+        ctx.stroke();
+        ctx.restore();
+
+        // Textos de Dano
+        ctx.font = "bold 14px 'Segoe UI'";
+        ctx.textAlign = "center";
+        Game.runtime.damageTexts.forEach(text => {
+            ctx.fillStyle = `rgba(255, 255, 255, ${text.life})`;
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = "#000";
+            ctx.fillText(text.text, cx + text.x, cy + text.y);
+        });
+        ctx.shadowBlur = 0;
+    }
+};
+
+/**
+ * ==========================================================================
+ * INTERFACE DO USUÁRIO (UI)
+ * ==========================================================================
+ */
+const UI = {
+    update: function() {
+        // Top Bar
+        document.getElementById('val-level').innerText = Game.state.playerLevel;
+        document.getElementById('val-xp-current').innerText = Utils.formatNumber(Math.floor(Game.state.playerXp));
+        document.getElementById('val-xp-max').innerText = Utils.formatNumber(Game.runtime.xpRequired);
+        document.getElementById('bar-xp').style.width = `${(Game.state.playerXp / Game.runtime.xpRequired) * 100}%`;
+        
+        const ptsEl = document.getElementById('val-stat-points');
+        ptsEl.innerText = Game.state.statPoints;
+        if (Game.state.statPoints > 0) {
+            ptsEl.style.textShadow = "0 0 10px var(--accent-color)";
+            ptsEl.style.animation = "pulse 1s infinite";
+        } else {
+            ptsEl.style.textShadow = "none";
+            ptsEl.style.animation = "none";
+        }
+
+        // Atributos
+        document.getElementById('val-str').innerText = Game.state.str;
+        document.getElementById('val-agi').innerText = Game.state.agi;
+        document.getElementById('val-ene').innerText = Game.state.ene;
+
+        document.getElementById('btn-add-str').disabled = Game.state.statPoints <= 0;
+        document.getElementById('btn-add-agi').disabled = Game.state.statPoints <= 0;
+        document.getElementById('btn-add-ene').disabled = Game.state.statPoints <= 0;
+
+        // Recursos e Inimigos
+        document.getElementById('val-gold').innerText = Utils.formatNumber(Game.state.gold);
+        document.getElementById('val-essence').innerText = Utils.formatNumber(Game.state.essence);
+        document.getElementById('val-enemy-tier').innerText = Game.state.enemyTier;
+        
+        const tierCost = Game.getTierCost();
+        document.getElementById('cost-tier').innerText = Utils.formatNumber(tierCost);
+        document.getElementById('btn-upg-tier').disabled = Game.state.gold < tierCost;
+
+        // Status de Combate
+        document.getElementById('val-damage').innerText = Utils.formatNumber(Game.runtime.damagePerHit);
+        const estimatedDps = Game.runtime.damagePerHit * (Game.runtime.rotationSpeed * 2);
+        document.getElementById('val-dps').innerText = Utils.formatNumber(estimatedDps);
+
+        // Mana
+        document.getElementById('val-mana-current').innerText = Math.floor(Game.state.mana);
+        document.getElementById('val-mana-max').innerText = Math.floor(Game.runtime.maxMana);
+        
+        const manaPercent = (Game.state.mana / Game.runtime.maxMana) * 100;
+        const manaBar = document.getElementById('bar-mana');
+        manaBar.style.width = `${manaPercent}%`;
+        
+        const manaStatusLbl = document.getElementById('lbl-mana-status');
+        if (Game.runtime.isExhausted) {
+            manaBar.classList.add('bg-exhausted');
+            manaBar.classList.remove('bg-mana');
+            manaStatusLbl.innerText = "EXAUSTO! Dano e Velocidade reduzidos.";
+            manaStatusLbl.style.color = "var(--danger-color)";
+        } else {
+            manaBar.classList.remove('bg-exhausted');
+            manaBar.classList.add('bg-mana');
+            const netMana = Game.runtime.manaRegen - Game.runtime.manaCost;
+            const sign = netMana >= 0 ? "+" : "";
+            manaStatusLbl.innerText = `Fluxo: ${sign}${netMana.toFixed(1)} / seg`;
+            manaStatusLbl.style.color = "var(--text-muted)";
+        }
+
+        // Prestige
+        document.getElementById('val-multiplier').innerText = Game.runtime.globalMultiplier.toFixed(2) + "x";
+        const btnPrestige = document.getElementById('btn-prestige');
+        if (Game.state.playerLevel >= Game.config.prestigeLevelReq) {
+            btnPrestige.disabled = false;
+            btnPrestige.innerText = `Ascensão (+${Math.floor(Game.state.playerLevel / 10)} Essência)`;
+        } else {
+            btnPrestige.disabled = true;
+            btnPrestige.innerText = `Ascensão (Requer Nível ${Game.config.prestigeLevelReq})`;
+        }
+    },
+
+    showNotification: function(message) {
+        const area = document.getElementById('notification-area');
+        const notif = document.createElement('div');
+        notif.className = 'notification';
+        notif.innerText = message;
+        area.appendChild(notif);
+        setTimeout(() => { if (notif.parentElement) notif.remove(); }, 3000);
+    }
+};
+
+// Inicialização
+window.onload = () => { Game.init(); };
+
+</script>
+</body>
+</html>

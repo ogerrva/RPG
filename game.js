@@ -1,225 +1,306 @@
 /**
- * TWISTING SLASH: ELEMENTAL - CORE ENGINE
- * Interface Adaptada ao Layout Dark RPG
+ * TWISTING SLASH: ELEMENTAL EVOLUTION
+ * Lógica de Jogo, VFX e Progressão Offline
  */
 
 const Game = {
+    // 1. ESTADO DO JOGO
     state: {
         gold: 0,
-        essence: 0,
-        xp: 0,
         level: 1,
-        points: 0,
-        stats: { str: 10, ene: 10, agi: 10 },
-        mana: 1050,
-        maxMana: 1050,
-        dps: 124500, // Exemplo inicial baseado na sua imagem
-        lastSave: Date.now(),
-        stage: 1,
-        wave: 1
+        xp: 0,
+        xpNext: 100,
+        essence: 0,
+        skillPoints: 0,
+        lastUpdate: Date.now(),
+        
+        // Atributos
+        stats: {
+            damage: 10,
+            atkSpeed: 1,
+            critChance: 0.05,
+            luck: 1
+        },
+
+        // Habilidades (Elemento: Nível)
+        skills: {
+            fire: 0,
+            ice: 0,
+            lightning: 0,
+            wind: 0
+        },
+        activeSynergy: null
     },
 
+    // 2. CONFIGURAÇÕES DE BALANCEAMENTO
     config: {
-        saveKey: 'TwistingSlash_RPG_Save',
-        baseXP: 120000, // Base do XP para o nível 128 da imagem
-        xpScale: 1.15,
-        manaRegenBase: 5,
+        baseXP: 100,
+        xpScaling: 1.15, // Aumenta 15% por nível
+        goldScaling: 1.12,
+        offlineEfficiency: 0.6, // Ganha 60% do progresso enquanto fora
     },
 
+    // 3. INICIALIZAÇÃO
     init() {
+        this.canvas = document.getElementById('vfx-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+
         this.loadGame();
-        this.setupCanvas();
         this.checkOfflineProgress();
-        this.setupPWA();
+        this.setupEventListeners();
+        this.renderSkillTree();
         
-        // Iniciar Loops
-        setInterval(() => this.saveGame(), 10000); // Auto-save 10s
-        this.gameLoop();
+        // Game Loop
+        requestAnimationFrame((t) => this.loop(t));
         
-        console.log("Sistema de Combate Iniciado...");
+        // Save automático a cada 10 segundos
+        setInterval(() => this.saveGame(), 10000);
     },
 
-    setupCanvas() {
-        this.cvs = document.getElementById('game-canvas');
-        this.ctx = this.cvs.getContext('2d');
-        this.fxCvs = document.getElementById('fx-canvas');
-        this.fxCtx = this.fxCvs.getContext('2d');
-        
-        this.resize();
-        window.addEventListener('resize', () => this.resize());
+    resizeCanvas() {
+        this.canvas.width = this.canvas.offsetWidth;
+        this.canvas.height = this.canvas.offsetHeight;
     },
 
-    resize() {
-        const container = document.querySelector('.combat-zone');
-        [this.cvs, this.fxCvs].forEach(c => {
-            c.width = container.clientWidth;
-            c.height = container.clientHeight;
+    // 4. SISTEMA DE VFX (ANIMAÇÕES)
+    particles: [],
+    
+    createLightning(x1, y1, x2, y2) {
+        this.particles.push({
+            type: 'lightning',
+            points: this.generateLightningPath(x1, y1, x2, y2),
+            life: 1.0,
+            color: '#ffe600'
         });
     },
 
-    // --- SISTEMA DE ATRIBUTOS (CONFORME A IMAGEM) ---
-    buyStat(stat) {
-        if (this.state.points > 0) {
-            this.state.points--;
-            this.state.stats[stat]++;
-            this.updateStatsLogic();
-            this.updateUI();
-            this.createEffect('upgrade', window.innerWidth/2, window.innerHeight/2, '#00aaff');
+    generateLightningPath(x1, y1, x2, y2) {
+        let points = [{x: x1, y: y1}];
+        let dist = Math.hypot(x2-x1, y2-y1);
+        let segments = 8;
+        for(let i=1; i<segments; i++) {
+            let px = x1 + (x2-x1) * (i/segments) + (Math.random()-0.5) * 30;
+            let py = y1 + (y2-y1) * (i/segments) + (Math.random()-0.5) * 30;
+            points.push({x: px, y: py});
         }
+        points.push({x: x2, y: y2});
+        return points;
     },
 
-    updateStatsLogic() {
-        // Balanceamento: Força aumenta DPS, Energia aumenta Mana, Agilidade aumenta Velocidade
-        this.state.dps = this.state.stats.str * 1200; 
-        this.state.maxMana = this.state.stats.ene * 2;
-        this.state.manaRegen = 2 + (this.state.stats.ene * 0.1);
-    },
-
-    // --- PROGRESSÃO E XP ---
-    gainXP(amount) {
-        this.state.xp += amount;
-        let reqXP = this.getRequiredXP();
+    drawVFX() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        if (this.state.xp >= reqXP) {
-            this.state.xp -= reqXP;
-            this.state.level++;
-            this.state.points += 5; // Ganha 5 pontos por nível como na imagem
-            this.updateUI();
+        // Aplica efeito de Domínio (Sugestão C)
+        if(this.state.activeSynergy === 'Supercondutor') {
+            this.ctx.fillStyle = 'rgba(0, 170, 255, 0.05)';
+            this.ctx.fillRect(0,0, this.canvas.width, this.canvas.height);
         }
-        this.updateBars();
-    },
 
-    getRequiredXP() {
-        return Math.floor(this.config.baseXP * Math.pow(this.state.level / 100, 1.5));
-    },
+        for(let i = this.particles.length - 1; i >= 0; i--) {
+            let p = this.particles[i];
+            this.ctx.strokeStyle = p.color;
+            this.ctx.lineWidth = 2 * p.life;
+            this.ctx.globalAlpha = p.life;
+            this.ctx.shadowBlur = 10;
+            this.ctx.shadowColor = p.color;
 
-    // --- MECÂNICA IDLE OFFLINE ---
-    checkOfflineProgress() {
-        const now = Date.now();
-        const diffInSeconds = Math.floor((now - this.state.lastSave) / 1000);
-        
-        if (diffInSeconds > 60) { // Mínimo 1 minuto
-            const hours = Math.floor(diffInSeconds / 3600);
-            const mins = Math.floor((diffInSeconds % 3600) / 60);
-            const secs = diffInSeconds % 60;
-
-            // Ganhos balanceados (ajuste os multiplicadores conforme desejar)
-            const goldEarned = Math.floor(diffInSeconds * (this.state.dps * 0.05));
-            const essenceEarned = Math.floor(diffInSeconds * 0.01);
-
-            this.state.gold += goldEarned;
-            this.state.essence += essenceEarned;
-
-            // Mostrar Modal
-            const modal = document.getElementById('idle-modal');
-            document.querySelector('.idle-time').innerText = 
-                `🕒 ${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-            document.getElementById('idle-gold').innerText = this.format(goldEarned);
-            document.getElementById('idle-essence').innerText = this.format(essenceEarned);
-            modal.classList.remove('hidden');
-        }
-    },
-
-    claimIdle() {
-        document.getElementById('idle-modal').classList.add('hidden');
-        this.saveGame();
-    },
-
-    // --- MOTOR VISUAL (PARTÍCULAS) ---
-    particles: [],
-    createEffect(type, x, y, color) {
-        const count = 15;
-        for(let i=0; i<count; i++) {
-            this.particles.push({
-                x, y,
-                vx: (Math.random()-0.5)*8,
-                vy: (Math.random()-0.5)*8,
-                life: 1.0,
-                color: color,
-                type: type
-            });
-        }
-    },
-
-    drawEffects() {
-        this.fxCtx.clearRect(0,0,this.fxCvs.width, this.fxCvs.height);
-        this.particles.forEach((p, i) => {
-            this.fxCtx.globalAlpha = p.life;
-            this.fxCtx.fillStyle = p.color;
-            
-            // Efeito de faísca/eletricidade
             if(p.type === 'lightning') {
-                this.fxCtx.fillRect(p.x, p.y, 2, 10);
-            } else {
-                this.fxCtx.beginPath();
-                this.fxCtx.arc(p.x, p.y, p.life*3, 0, Math.PI*2);
-                this.fxCtx.fill();
+                this.ctx.beginPath();
+                this.ctx.moveTo(p.points[0].x, p.points[0].y);
+                p.points.forEach(pt => this.ctx.lineTo(pt.x, pt.y));
+                this.ctx.stroke();
             }
 
-            p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+            p.life -= 0.05;
             if(p.life <= 0) this.particles.splice(i, 1);
-        });
+        }
+        this.ctx.globalAlpha = 1;
+        this.ctx.shadowBlur = 0;
     },
 
-    // --- INTERFACE E UTILITÁRIOS ---
-    updateUI() {
-        document.getElementById('val-gold').innerText = this.format(this.state.gold);
-        document.getElementById('val-essence').innerText = this.format(this.state.essence);
-        document.getElementById('val-level').innerText = `NÍVEL ${this.state.level}`;
-        document.getElementById('curr-lvl').innerText = this.state.level;
-        document.getElementById('val-points').innerText = this.state.points;
-        document.getElementById('val-dps').innerText = this.format(this.state.dps);
+    // 5. LÓGICA DE COMBATE E BALANCEAMENTO
+    spawnEnemy() {
+        // Simulação de ataque automático (Idle)
+        const damage = this.state.stats.damage * (1 + (this.state.skills.fire * 0.2));
+        const isCrit = Math.random() < this.state.stats.critChance;
+        const finalDmg = isCrit ? damage * 2 : damage;
+
+        // Visual do ataque
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
         
-        document.getElementById('stat-str').innerText = this.state.stats.str;
-        document.getElementById('stat-ene').innerText = this.state.stats.ene;
-        document.getElementById('stat-agi').innerText = this.state.stats.agi;
+        if(this.state.skills.lightning > 0) {
+            this.createLightning(centerX - 50, centerY, centerX + 50, centerY + (Math.random()*40 - 20));
+        }
+
+        this.gainRewards();
     },
 
-    updateBars() {
-        const manaPerc = (this.state.mana / this.state.maxMana) * 100;
-        document.getElementById('mana-fill').style.width = `${manaPerc}%`;
-        document.getElementById('mana-text').innerText = `${Math.floor(this.state.mana)} / ${this.state.maxMana}`;
+    gainRewards() {
+        // Fórmulas de Balanceamento Exponencial
+        const rewardGold = Math.floor(5 * Math.pow(this.config.goldScaling, this.state.level));
+        const rewardXP = Math.floor(10 * Math.pow(this.config.xpScaling, this.state.level));
 
-        const xpPerc = (this.state.xp / this.getRequiredXP()) * 100;
-        document.getElementById('xp-fill').style.width = `${xpPerc}%`;
+        this.state.gold += rewardGold;
+        this.state.xp += rewardXP;
+
+        if(this.state.xp >= this.state.xpNext) {
+            this.levelUp();
+        }
+        this.updateUI();
     },
 
-    format(num) {
-        if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-        return Math.floor(num);
+    levelUp() {
+        this.state.level++;
+        this.state.xp = 0;
+        this.state.xpNext = Math.floor(this.config.baseXP * Math.pow(this.config.xpScaling, this.state.level));
+        this.state.skillPoints += 2;
+        // Feedback visual de level up pode ser adicionado aqui
     },
 
+    // 6. SINERGIAS E SKILLS
+    checkSynergies() {
+        const s = this.state.skills;
+        let oldSynergy = this.state.activeSynergy;
+
+        if(s.fire >= 5 && s.wind >= 5) this.state.activeSynergy = "Tornado de Chamas";
+        else if(s.lightning >= 5 && s.ice >= 5) this.state.activeSynergy = "Supercondutor";
+        else this.state.activeSynergy = null;
+
+        if(this.state.activeSynergy && this.state.activeSynergy !== oldSynergy) {
+            this.showSynergyAlert(this.state.activeSynergy);
+        }
+    },
+
+    respec() {
+        let totalPoints = 0;
+        for(let key in this.state.skills) {
+            totalPoints += this.state.skills[key];
+            this.state.skills[key] = 0;
+        }
+        this.state.skillPoints += totalPoints;
+        this.state.activeSynergy = null;
+        this.renderSkillTree();
+        this.updateUI();
+    },
+
+    // 7. PROGRESSO OFFLINE
+    checkOfflineProgress() {
+        const now = Date.now();
+        const diff = (now - this.state.lastUpdate) / 1000; // Segundos
+
+        if(diff > 60) { // Mais de 1 minuto fora
+            const hours = (diff / 3600).toFixed(1);
+            const offlineGold = Math.floor(diff * (this.state.level * 0.5) * this.config.offlineEfficiency);
+            const offlineXP = Math.floor(diff * (this.state.level * 0.2) * this.config.offlineEfficiency);
+
+            this.state.gold += offlineGold;
+            this.state.xp += offlineXP;
+            
+            // Mostrar Modal
+            document.getElementById('offline-time').innerText = `${hours}h`;
+            document.getElementById('offline-gold').innerText = offlineGold;
+            document.getElementById('offline-xp').innerText = offlineXP;
+            document.getElementById('offline-modal').classList.remove('hidden');
+        }
+        this.state.lastUpdate = now;
+    },
+
+    // 8. PERSISTÊNCIA (SAVE/LOAD)
     saveGame() {
-        this.state.lastSave = Date.now();
-        localStorage.setItem(this.config.saveKey, JSON.stringify(this.state));
+        this.state.lastUpdate = Date.now();
+        localStorage.setItem('twistingSlashSave', JSON.stringify(this.state));
     },
 
     loadGame() {
-        const saved = localStorage.getItem(this.config.saveKey);
-        if (saved) this.state = {...this.state, ...JSON.parse(saved)};
-        this.updateStatsLogic();
+        const saved = localStorage.getItem('twistingSlashSave');
+        if(saved) {
+            this.state = {...this.state, ...JSON.parse(saved)};
+        }
     },
 
-    setupPWA() {
-        // Lógica de instalação (Manifest)
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            console.log("PWA Pronto para instalar.");
+    // 9. UI ENGINE
+    setupEventListeners() {
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn, .tab-pane').forEach(el => el.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+            };
+        });
+
+        document.getElementById('btn-respec').onclick = () => this.respec();
+        document.getElementById('close-offline').onclick = () => {
+            document.getElementById('offline-modal').classList.add('hidden');
+        };
+
+        // Clique na arena para ataque manual
+        document.getElementById('arena-section').onclick = (e) => {
+            this.createLightning(this.canvas.width/2, this.canvas.height/2, e.clientX, e.clientY);
+            this.gainRewards();
+        };
+    },
+
+    renderSkillTree() {
+        const container = document.getElementById('skill-tree-container');
+        const skills = [
+            { id: 'fire', name: 'Chamas Infernais', desc: '+20% Dano por Nível' },
+            { id: 'ice', name: 'Zero Absoluto', desc: 'Congela inimigos' },
+            { id: 'lightning', name: 'Fúria de Thor', desc: 'Dano em área' },
+            { id: 'wind', name: 'Corte de Vácuo', desc: '+10% Velocidade' }
+        ];
+
+        container.innerHTML = `<p style="margin-bottom:10px">Pontos Disponíveis: ${this.state.skillPoints}</p>`;
+        
+        skills.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'skill-node';
+            div.innerHTML = `
+                <div class="skill-info">
+                    <h4>${s.name} (Nv. ${this.state.skills[s.id]})</h4>
+                    <p>${s.desc}</p>
+                </div>
+                <button class="main-btn" ${this.state.skillPoints <= 0 ? 'disabled' : ''} onclick="Game.buySkill('${s.id}')">UP</button>
+            `;
+            container.appendChild(div);
         });
     },
 
-    gameLoop() {
-        // Regeneração de Mana
-        if(this.state.mana < this.state.maxMana) {
-            this.state.mana += this.state.manaRegen / 60;
+    buySkill(id) {
+        if(this.state.skillPoints > 0) {
+            this.state.skills[id]++;
+            this.state.skillPoints--;
+            this.checkSynergies();
+            this.renderSkillTree();
+            this.updateUI();
         }
+    },
 
-        this.drawEffects();
-        this.updateBars();
-        this.updateUI();
-        
-        requestAnimationFrame(() => this.gameLoop());
+    showSynergyAlert(name) {
+        const alert = document.getElementById('synergy-alert');
+        alert.innerText = `SINERGIA ATIVA: ${name.toUpperCase()}`;
+        alert.classList.remove('hidden');
+        setTimeout(() => alert.classList.add('hidden'), 3000);
+    },
+
+    updateUI() {
+        document.getElementById('gold-val').innerText = Math.floor(this.state.gold);
+        document.getElementById('level-val').innerText = this.state.level;
+        document.getElementById('xp-text').innerText = `XP: ${this.state.xp} / ${this.state.xpNext}`;
+        document.getElementById('xp-bar-fill').style.width = `${(this.state.xp / this.state.xpNext) * 100}%`;
+    },
+
+    loop(t) {
+        this.drawVFX();
+        // Ataca automaticamente a cada 1 segundo (Simulação Idle)
+        if(t - this.state.lastUpdate > 1000) {
+            this.spawnEnemy();
+            this.state.lastUpdate = t;
+        }
+        requestAnimationFrame((t) => this.loop(t));
     }
 };
 

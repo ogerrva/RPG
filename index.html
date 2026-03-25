@@ -3,84 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#050508">
     <title>Twisting Slash: Elemental</title>
-    
-    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
     <div id="game-container">
-        <canvas id="bg-canvas"></canvas>
-        <canvas id="game-canvas"></canvas>
-        <canvas id="fx-canvas"></canvas>
-
-        <header id="hud-top">
-            <div class="stat-group gold">
-                <span class="icon">💰</span>
-                <span id="val-gold">0</span>
-            </div>
-            <div class="stat-group level">
-                <span id="val-level">NV. 1</span>
-                <div class="xp-bar-container">
-                    <div id="xp-fill"></div>
+        <header class="top-bar">
+            <div class="user-info">
+                <div class="avatar-border"><img src="icon.png" alt="Hero"></div>
+                <div class="user-text">
+                    <span class="username">SlashMaster</span>
+                    <span class="level-tag" id="val-level">NÍVEL 1</span>
                 </div>
             </div>
-            <div class="stat-group essence">
-                <span class="icon">✨</span>
-                <span id="val-essence">0</span>
+            <div class="currency-group">
+                <div class="res-item gold">
+                    <img src="https://cdn-icons-png.flaticon.com/128/2489/2489756.png" width="14">
+                    <span id="val-gold">0</span>
+                </div>
+                <div class="res-item essence">
+                    <img src="https://cdn-icons-png.flaticon.com/128/11651/11651586.png" width="14">
+                    <span id="val-essence">0</span>
+                </div>
             </div>
+            <button class="menu-hamburger">☰</button>
         </header>
 
-        <div id="mana-container">
-            <div id="mana-fill"></div>
-            <span id="mana-text">100/100</span>
+        <main class="combat-zone">
+            <div class="stage-info">
+                <span id="stage-name">Planície Esquecida</span>
+                <small id="wave-info">Ato 1 - Onda 1/10</small>
+            </div>
+
+            <canvas id="game-canvas"></canvas>
+            <canvas id="fx-canvas"></canvas>
+
+            <div class="combat-stats-overlay">
+                <div class="dps-counter">DPS ATUAL: <span id="val-dps">124.50K</span></div>
+                <div class="mana-bar-compact">
+                    <div id="mana-fill"></div>
+                    <span id="mana-text">892 / 1.050</span>
+                </div>
+            </div>
+        </main>
+
+        <div class="xp-container">
+            <div class="xp-bar"><div id="xp-fill"></div></div>
+            <div class="xp-info">EXP Nível <span id="curr-lvl">1</span></div>
         </div>
 
-        <nav id="main-nav">
-            <button onclick="UI.toggleTab('upgrades')" class="nav-btn">🛠️ <small>Atributos</small></button>
-            <button onclick="UI.toggleTab('skills')" class="nav-btn">🔥 <small>Habilidades</small></button>
-            <button onclick="UI.toggleTab('prestige')" class="nav-btn">🏆 <small>Ascensão</small></button>
-            <button id="pwa-install" class="nav-btn hidden">📲 <small>Instalar</small></button>
-        </nav>
-
-        <section id="ui-panels">
-            <div id="tab-upgrades" class="panel hidden">
-                <div class="panel-header">
-                    <h3>Atributos do Herói</h3>
-                    <button onclick="UI.closeAll()">×</button>
-                </div>
-                <div class="scroll-area" id="list-upgrades">
+        <section class="attribute-panel">
+            <div class="panel-title">APRIMORAMENTO DE ATRIBUTOS</div>
+            <div class="points-available">Pontos Disponíveis: <span id="val-points">0</span></div>
+            
+            <div class="attr-grid">
+                <div class="attr-card str">
+                    <div class="attr-icon">🔥</div>
+                    <div class="attr-data">
+                        <span class="name">FORÇA</span>
+                        <span class="value" id="stat-str">10</span>
                     </div>
+                    <button onclick="Game.buyStat('str')">+</button>
+                </div>
+                <div class="attr-card ene">
+                    <div class="attr-icon">💧</div>
+                    <div class="attr-data">
+                        <span class="name">ENERGIA</span>
+                        <span class="value" id="stat-ene">10</span>
+                    </div>
+                    <button onclick="Game.buyStat('ene')">+</button>
+                </div>
+                <div class="attr-card agi">
+                    <div class="attr-icon">⚡</div>
+                    <div class="attr-data">
+                        <span class="name">VELOCIDADE</span>
+                        <span class="value" id="stat-agi">10</span>
+                    </div>
+                    <button onclick="Game.buyStat('agi')">+</button>
+                </div>
             </div>
 
-            <div id="tab-skills" class="panel hidden">
-                <div class="panel-header">
-                    <h3>Domínio Elemental</h3>
-                    <button onclick="UI.closeAll()">×</button>
-                </div>
-                <div class="scroll-area" id="list-skills">
-                    </div>
-            </div>
+            <button class="btn-shop">ABRIR LOJA DE APRIMORAMENTOS</button>
         </section>
+
+        <nav class="bottom-nav">
+            <button class="nav-item active">⚔️<span>Combate</span></button>
+            <button class="nav-item">🛡️<span>Atributos</span></button>
+            <button class="nav-item">🏆<span>Ascensão</span></button>
+            <button class="nav-item">🛒<span>Loja</span></button>
+        </nav>
 
         <div id="idle-modal" class="modal hidden">
             <div class="modal-content">
-                <h2>Bem-vindo de volta!</h2>
-                <p>Enquanto você estava fora, seus heróis lutaram bravamente.</p>
-                <div class="idle-stats">
-                    <div>Ganhos: <span id="idle-gold" class="gold-text">0</span> 💰</div>
-                    <div>Experiência: <span id="idle-xp" class="xp-text">0</span> ✨</div>
+                <h3>PROGRESSO OFFLINE</h3>
+                <div class="idle-time">🕒 02:14:38</div>
+                <div class="idle-rewards">
+                    <div class="reward-row">💰 <span id="idle-gold">0</span></div>
+                    <div class="reward-row">✨ <span id="idle-essence">0</span></div>
                 </div>
-                <button onclick="Game.claimIdle()">Coletar Recompensas</button>
+                <button onclick="Game.claimIdle()">COLETAR</button>
             </div>
         </div>
     </div>
 
-    <script src="game.js" defer></script>
+    <script src="game.js"></script>
 </body>
 </html>

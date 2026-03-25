@@ -1,133 +1,294 @@
+/* ==========================================================================
+   1. CONFIGURAÇÕES GERAIS E CORES
+   ========================================================================== */
 :root {
-    --bg-main: #0a0b12;
-    --border-metal: #1f2233;
-    --blue-glow: #00aaff;
-    --red-glow: #ff2a4b;
-    --panel-inner: rgba(16, 18, 27, 0.9);
+    --bg-dark: #050508;
+    --panel-bg: rgba(15, 16, 22, 0.95);
+    --panel-border: #2a2e45;
+    --text-main: #e0e0e0;
+    --text-muted: #8a8d9e;
+    
+    /* Cores Néon */
+    --neon-red: #ff2a4b;
+    --neon-blue: #00aaff;
+    --neon-green: #00ff66;
+    --neon-gold: #ffcc00;
+    --neon-purple: #b366ff;
+
+    /* Cores Elementais */
+    --ele-fire: #ff4d00;
+    --ele-ice: #00e5ff;
+    --ele-light: #ffe600; /* Elétrico */
+    --ele-wind: #00ff88;
 }
 
-* { box-sizing: border-box; font-family: 'Rajdhani', sans-serif; margin: 0; padding: 0; user-select: none; }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Rajdhani', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
 
-body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; }
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    overflow: hidden; /* Evita scroll indesejado no mobile */
+    height: 100vh;
+    width: 100vw;
+}
 
+/* ==========================================================================
+   2. LAYOUT RESPONSIVO (Grid)
+   ========================================================================== */
 #game-container {
-    height: 100%;
     display: flex;
     flex-direction: column;
-    background: radial-gradient(circle at center, #1a1c2c 0%, #050508 100%);
+    height: 100vh;
 }
 
-/* TOP BAR */
-.top-bar {
+#game-header {
+    height: 60px;
+    background: var(--panel-bg);
+    border-bottom: 1px solid var(--panel-border);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    background: rgba(0,0,0,0.8);
-    border-bottom: 2px solid var(--border-metal);
+    justify-content: space-around;
+    padding: 0 10px;
+    z-index: 10;
 }
 
-.user-info { display: flex; align-items: center; gap: 8px; }
-.avatar-border { width: 35px; height: 35px; border: 2px solid var(--red-glow); border-radius: 5px; background: #222; }
-.username { display: block; font-size: 14px; font-weight: 700; color: #ccc; }
-.level-tag { color: var(--blue-glow); font-size: 12px; }
+#main-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
 
-.currency-group { display: flex; gap: 10px; }
-.res-item { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px; border: 1px solid #333; font-size: 13px; font-weight: 700; }
-.gold { color: #ffd700; } .essence { color: #b366ff; }
-
-/* COMBAT ZONE */
-.combat-zone {
+/* Arena de Combate (Centro/Esquerda) */
+#arena-section {
     flex: 1;
     position: relative;
+    background: radial-gradient(circle, #1a1b26 0%, #050508 100%);
     overflow: hidden;
     display: flex;
+    align-items: center;
     justify-content: center;
 }
 
-.stage-info {
+#vfx-canvas {
     position: absolute;
-    top: 15px;
-    text-align: center;
-    z-index: 5;
-    text-transform: uppercase;
-}
-.stage-info span { display: block; font-size: 18px; font-weight: 700; letter-spacing: 1px; }
-
-.combat-stats-overlay {
-    position: absolute;
-    right: 15px;
-    top: 80px;
-    background: var(--panel-inner);
-    border: 1px solid var(--border-metal);
-    padding: 10px;
-    border-radius: 8px;
-    width: 140px;
-}
-
-/* BARRAS ESTILIZADAS */
-.mana-bar-compact, .xp-bar {
+    top: 0;
+    left: 0;
     width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Painel de UI (Direita no Desktop) */
+#ui-section {
+    width: 400px;
+    background: var(--panel-bg);
+    border-left: 2px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 5;
+}
+
+/* Responsividade para Mobile */
+@media (max-width: 900px) {
+    #main-layout {
+        flex-direction: column;
+    }
+    
+    #ui-section {
+        width: 100%;
+        height: 50%;
+        border-left: none;
+        border-top: 2px solid var(--panel-border);
+    }
+
+    #arena-section {
+        height: 50%;
+    }
+}
+
+/* ==========================================================================
+   3. ELEMENTOS DE UI (Tabs, Botões, Barras)
+   ========================================================================== */
+.stat-box {
+    text-align: center;
+}
+
+.stat-box .label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+}
+
+.stat-box .value {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.xp-bar-container {
+    width: 200px;
     height: 12px;
     background: #111;
     border: 1px solid #333;
-    border-radius: 4px;
+    border-radius: 6px;
     position: relative;
-    margin-top: 5px;
+    overflow: hidden;
 }
-#mana-fill { height: 100%; background: linear-gradient(90deg, #0044ff, #00c3ff); width: 80%; }
-#xp-fill { height: 100%; background: #00ff66; width: 40%; box-shadow: 0 0 10px #00ff66; }
 
-/* ATRIBUTOS */
-.attribute-panel {
-    background: var(--panel-inner);
-    border-top: 2px solid var(--border-metal);
-    padding: 15px;
+#xp-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #0066ff, var(--neon-blue));
+    box-shadow: 0 0 10px var(--neon-blue);
+    transition: width 0.3s ease;
 }
-.panel-title { text-align: center; font-size: 12px; color: #888; margin-bottom: 10px; }
-.attr-grid { display: flex; gap: 8px; margin-bottom: 15px; }
 
-.attr-card {
-    flex: 1;
-    background: #151722;
-    border: 1px solid #2a2d3e;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border-radius: 5px;
-}
-.attr-card .name { font-size: 10px; color: #aaa; }
-.attr-card .value { font-size: 16px; font-weight: 700; }
-.attr-card button {
-    margin-top: 8px;
+#xp-text {
+    position: absolute;
     width: 100%;
-    background: #1e2235;
-    border: 1px solid var(--blue-glow);
-    color: var(--blue-glow);
+    text-align: center;
+    font-size: 0.6rem;
+    line-height: 10px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px black;
+}
+
+/* Navegação por Abas */
+.tabs {
+    display: flex;
+    background: #0a0a0f;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
     font-weight: 700;
     cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: 0.3s;
 }
 
-.btn-shop {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(to bottom, #4e1414, #2a0a0a);
-    border: 1px solid #ff2a4b;
-    color: white;
-    font-weight: 700;
-    border-radius: 5px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+.tab-btn.active {
+    color: var(--neon-blue);
+    border-bottom: 2px solid var(--neon-blue);
+    background: rgba(0, 170, 255, 0.05);
 }
 
-/* BOTTOM NAV */
-.bottom-nav {
+.tab-content {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* ==========================================================================
+   4. SKILL TREE E BOTÕES
+   ========================================================================== */
+.tab-header {
     display: flex;
-    justify-content: space-around;
-    background: #000;
-    border-top: 2px solid var(--border-metal);
-    padding: 8px 0;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
-.nav-item { background: none; border: none; color: #666; display: flex; flex-direction: column; align-items: center; font-size: 10px; }
-.nav-item.active { color: var(--blue-glow); }
-.nav-item span { margin-top: 4px; }
+
+.main-btn, .secondary-btn {
+    background: #1a1d2e;
+    border: 1px solid var(--panel-border);
+    color: white;
+    padding: 8px 15px;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: 0.2s;
+}
+
+.main-btn:hover:not(:disabled) {
+    background: var(--neon-blue);
+    box-shadow: 0 0 15px var(--neon-blue);
+}
+
+.secondary-btn {
+    font-size: 0.7rem;
+    border-color: var(--neon-red);
+    color: var(--neon-red);
+}
+
+.secondary-btn:hover {
+    background: var(--neon-red);
+    color: white;
+}
+
+/* Estilo para as Habilidades na Árvore */
+.skill-node {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--panel-border);
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.skill-info h4 { margin: 0; color: var(--neon-blue); }
+.skill-info p { font-size: 0.8rem; color: var(--text-muted); }
+
+/* ==========================================================================
+   5. EFEITOS ESPECIAIS (Néon e Modais)
+   ========================================================================== */
+.neon-gold { color: var(--neon-gold); text-shadow: 0 0 5px var(--neon-gold); }
+.neon-blue { color: var(--neon-blue); text-shadow: 0 0 5px var(--neon-blue); }
+.neon-purple { color: var(--neon-purple); text-shadow: 0 0 5px var(--neon-purple); }
+
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background: var(--panel-bg);
+    padding: 30px;
+    border: 2px solid var(--neon-blue);
+    border-radius: 15px;
+    text-align: center;
+    max-width: 300px;
+}
+
+.hidden { display: none !important; }
+
+/* Animação de Alerta de Sinergia */
+#synergy-alert {
+    position: absolute;
+    top: 20%;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 0 10px var(--neon-purple);
+    animation: flash 1s infinite;
+}
+
+@keyframes flash {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.1); }
+}

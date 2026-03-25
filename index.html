@@ -3,110 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Twisting Slash: Elemental</title>
+    <meta name="theme-color" content="#050508">
+    <title>Twisting Slash: Elemental Evolution</title>
+    
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+
     <div id="game-container">
-        <header class="top-bar">
-            <div class="user-info">
-                <div class="avatar-border"><img src="icon.png" alt="Hero"></div>
-                <div class="user-text">
-                    <span class="username">SlashMaster</span>
-                    <span class="level-tag" id="val-level">NÍVEL 1</span>
-                </div>
+        <header id="game-header">
+            <div class="stat-box">
+                <span class="label">OURO</span>
+                <span id="gold-val" class="value neon-gold">0</span>
             </div>
-            <div class="currency-group">
-                <div class="res-item gold">
-                    <img src="https://cdn-icons-png.flaticon.com/128/2489/2489756.png" width="14">
-                    <span id="val-gold">0</span>
-                </div>
-                <div class="res-item essence">
-                    <img src="https://cdn-icons-png.flaticon.com/128/11651/11651586.png" width="14">
-                    <span id="val-essence">0</span>
-                </div>
+            <div class="stat-box">
+                <span class="label">NÍVEL</span>
+                <span id="level-val" class="value neon-blue">1</span>
             </div>
-            <button class="menu-hamburger">☰</button>
+            <div class="xp-bar-container">
+                <div id="xp-bar-fill"></div>
+                <span id="xp-text">XP: 0 / 100</span>
+            </div>
         </header>
 
-        <main class="combat-zone">
-            <div class="stage-info">
-                <span id="stage-name">Planície Esquecida</span>
-                <small id="wave-info">Ato 1 - Onda 1/10</small>
-            </div>
-
-            <canvas id="game-canvas"></canvas>
-            <canvas id="fx-canvas"></canvas>
-
-            <div class="combat-stats-overlay">
-                <div class="dps-counter">DPS ATUAL: <span id="val-dps">124.50K</span></div>
-                <div class="mana-bar-compact">
-                    <div id="mana-fill"></div>
-                    <span id="mana-text">892 / 1.050</span>
+        <main id="main-layout">
+            <section id="arena-section">
+                <div id="arena-overlay">
+                    <div id="synergy-alert" class="hidden"></div>
                 </div>
-            </div>
+                <canvas id="vfx-canvas"></canvas>
+                <div id="damage-numbers"></div>
+            </section>
+
+            <section id="ui-section">
+                <nav class="tabs">
+                    <button class="tab-btn active" data-tab="skills">ÁRVORE</button>
+                    <button class="tab-btn" data-tab="upgrades">MELHORIAS</button>
+                    <button class="tab-btn" data-tab="ascension">ASCENSÃO</button>
+                </nav>
+
+                <div class="tab-content">
+                    <div id="skills-tab" class="tab-pane active">
+                        <div class="tab-header">
+                            <h3>Habilidades Elementais</h3>
+                            <button id="btn-respec" class="secondary-btn">REDEFINIR PONTOS</button>
+                        </div>
+                        <div class="skill-tree" id="skill-tree-container">
+                            </div>
+                    </div>
+
+                    <div id="upgrades-tab" class="tab-pane">
+                        <div class="upgrade-list" id="upgrade-list">
+                            </div>
+                    </div>
+
+                    <div id="ascension-tab" class="tab-pane">
+                        <div class="ascension-info">
+                            <p>Essência Atual: <span id="essence-val" class="neon-purple">0</span></p>
+                            <button id="btn-ascend" class="main-btn" disabled>ASCENDER (NV. 100)</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
+    </div>
 
-        <div class="xp-container">
-            <div class="xp-bar"><div id="xp-fill"></div></div>
-            <div class="xp-info">EXP Nível <span id="curr-lvl">1</span></div>
-        </div>
-
-        <section class="attribute-panel">
-            <div class="panel-title">APRIMORAMENTO DE ATRIBUTOS</div>
-            <div class="points-available">Pontos Disponíveis: <span id="val-points">0</span></div>
-            
-            <div class="attr-grid">
-                <div class="attr-card str">
-                    <div class="attr-icon">🔥</div>
-                    <div class="attr-data">
-                        <span class="name">FORÇA</span>
-                        <span class="value" id="stat-str">10</span>
-                    </div>
-                    <button onclick="Game.buyStat('str')">+</button>
-                </div>
-                <div class="attr-card ene">
-                    <div class="attr-icon">💧</div>
-                    <div class="attr-data">
-                        <span class="name">ENERGIA</span>
-                        <span class="value" id="stat-ene">10</span>
-                    </div>
-                    <button onclick="Game.buyStat('ene')">+</button>
-                </div>
-                <div class="attr-card agi">
-                    <div class="attr-icon">⚡</div>
-                    <div class="attr-data">
-                        <span class="name">VELOCIDADE</span>
-                        <span class="value" id="stat-agi">10</span>
-                    </div>
-                    <button onclick="Game.buyStat('agi')">+</button>
-                </div>
+    <div id="offline-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>BEM-VINDO DE VOLTA!</h2>
+            <p>Seus heróis lutaram enquanto você estava fora.</p>
+            <div class="offline-rewards">
+                <p>Tempo: <span id="offline-time">0h 0m</span></p>
+                <p>Ouro ganho: <span id="offline-gold" class="neon-gold">0</span></p>
+                <p>XP ganho: <span id="offline-xp" class="neon-blue">0</span></p>
             </div>
-
-            <button class="btn-shop">ABRIR LOJA DE APRIMORAMENTOS</button>
-        </section>
-
-        <nav class="bottom-nav">
-            <button class="nav-item active">⚔️<span>Combate</span></button>
-            <button class="nav-item">🛡️<span>Atributos</span></button>
-            <button class="nav-item">🏆<span>Ascensão</span></button>
-            <button class="nav-item">🛒<span>Loja</span></button>
-        </nav>
-
-        <div id="idle-modal" class="modal hidden">
-            <div class="modal-content">
-                <h3>PROGRESSO OFFLINE</h3>
-                <div class="idle-time">🕒 02:14:38</div>
-                <div class="idle-rewards">
-                    <div class="reward-row">💰 <span id="idle-gold">0</span></div>
-                    <div class="reward-row">✨ <span id="idle-essence">0</span></div>
-                </div>
-                <button onclick="Game.claimIdle()">COLETAR</button>
-            </div>
+            <button id="close-offline" class="main-btn">COLETAR</button>
         </div>
     </div>
 
     <script src="game.js"></script>
+    <script>
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log("SW Fail:", err));
+        }
+    </script>
 </body>
 </html>

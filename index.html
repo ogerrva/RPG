@@ -14,7 +14,6 @@
 <div id="app-container">
     <canvas id="gameCanvas"></canvas>
 
-    <!-- HUD Superior -->
     <header id="hud-top">
         <div class="player-profile">
             <div class="avatar"></div>
@@ -30,8 +29,7 @@
         </div>
     </header>
 
-    <!-- Painéis Laterais -->
-    <aside class="side-panel left" id="panel-attributes">
+    <aside class="side-panel left hide-on-skills" id="panel-attributes">
         <div class="panel-title">ATRIBUTOS</div>
         <div class="pts-disp">Pontos: <span id="val-pts-side" class="highlight">0</span></div>
         <div class="stat-row"><span class="icon str">⚔️</span> <span id="ov-str">0</span></div>
@@ -39,7 +37,7 @@
         <div class="stat-row"><span class="icon agi">🌪️</span> <span id="ov-agi">0</span></div>
     </aside>
 
-    <aside class="side-panel right" id="panel-status">
+    <aside class="side-panel right hide-on-skills" id="panel-status">
         <div class="panel-title">STATUS</div>
         <div class="stat-dps">DPS<br><span id="ov-dps" class="highlight">0</span></div>
         <div class="stat-mana">MANA <span id="ov-mana-regen">0</span>/s</div>
@@ -52,8 +50,7 @@
         </div>
     </aside>
 
-    <!-- Barras Centrais -->
-    <div id="center-bars">
+    <div id="center-bars" class="hide-on-skills">
         <div class="bar-wrapper">
             <div class="bar-labels"><span class="blue">💧 MANA</span> <span id="val-mana-txt">0 / 0</span></div>
             <div class="bar-bg"><div class="bar-fill blue-fill" id="bar-mana"></div></div>
@@ -65,43 +62,26 @@
         </div>
     </div>
 
-    <!-- Área Principal (Abas) -->
     <main id="main-content">
-        
-        <!-- ABA: ATRIBUTOS -->
         <section id="tab-atributos" class="tab-content active">
             <div class="section-title">APRIMORAMENTO DE ATRIBUTOS</div>
             <div class="pts-center">Pontos Disponíveis: <span id="val-pts-main" class="highlight">0</span></div>
-            
             <div class="cards-container">
                 <div class="attr-card str">
-                    <div class="card-top">
-                        <div class="icon-box">⚔️</div>
-                        <div class="card-info"><h4>FORÇA</h4><span id="card-str" class="val">0</span></div>
-                        <button class="btn-add" id="btn-add-str" onclick="Game.addStat('str')">+</button>
-                    </div>
+                    <div class="card-top"><div class="icon-box">⚔️</div><div class="card-info"><h4>FORÇA</h4><span id="card-str" class="val">0</span></div><button class="btn-add" id="btn-add-str" onclick="Game.addStat('str')">+</button></div>
                     <div class="card-bot">+ Dano Base</div>
                 </div>
                 <div class="attr-card ene">
-                    <div class="card-top">
-                        <div class="icon-box">⚡</div>
-                        <div class="card-info"><h4>ENERGIA</h4><span id="card-ene" class="val">0</span></div>
-                        <button class="btn-add" id="btn-add-ene" onclick="Game.addStat('ene')">+</button>
-                    </div>
+                    <div class="card-top"><div class="icon-box">⚡</div><div class="card-info"><h4>ENERGIA</h4><span id="card-ene" class="val">0</span></div><button class="btn-add" id="btn-add-ene" onclick="Game.addStat('ene')">+</button></div>
                     <div class="card-bot">+ Mana / - Custo</div>
                 </div>
                 <div class="attr-card agi">
-                    <div class="card-top">
-                        <div class="icon-box">🌪️</div>
-                        <div class="card-info"><h4>VELOCIDADE</h4><span id="card-agi" class="val">0</span></div>
-                        <button class="btn-add" id="btn-add-agi" onclick="Game.addStat('agi')">+</button>
-                    </div>
+                    <div class="card-top"><div class="icon-box">🌪️</div><div class="card-info"><h4>VELOCIDADE</h4><span id="card-agi" class="val">0</span></div><button class="btn-add" id="btn-add-agi" onclick="Game.addStat('agi')">+</button></div>
                     <div class="card-bot">+ Rotação (RPS)</div>
                 </div>
             </div>
         </section>
 
-        <!-- ABA: UPGRADES -->
         <section id="tab-upgrades" class="tab-content">
             <div class="section-title">UPGRADES DE COMBATE</div>
             <div class="list-container">
@@ -120,30 +100,17 @@
             </div>
         </section>
 
-        <!-- ABA: SKILLS (Estilo PoE 2) -->
         <section id="tab-skills" class="tab-content">
-            <div class="section-title">ÁRVORE ELEMENTAL</div>
+            <div class="section-title">ÁRVORE DE HABILIDADES</div>
             <div class="skill-header">
                 <span>SP Disponível: <span id="val-sp" class="highlight">0</span></span>
                 <button class="btn-action small outline" onclick="Game.resetSkills()">Resetar Skills</button>
             </div>
-            <div class="element-filters">
-                <button class="ele-btn fire active" onclick="UI.filterSkills('fire')">Fogo</button>
-                <button class="ele-btn ice" onclick="UI.filterSkills('ice')">Gelo</button>
-                <button class="ele-btn light" onclick="UI.filterSkills('lightning')">Raio</button>
-                <button class="ele-btn wind" onclick="UI.filterSkills('wind')">Vento</button>
-                <button class="ele-btn poison" onclick="UI.filterSkills('poison')">Veneno</button>
-            </div>
-            
-            <!-- Container da Árvore Constelação -->
-            <div class="poe-tree-viewport">
-                <div id="skill-tree-container" class="poe-tree-content">
-                    <!-- SVG e Nodes injetados via JS -->
-                </div>
+            <div class="poe-tree-viewport" id="tree-viewport">
+                <div id="skill-tree-container" class="poe-tree-content"></div>
             </div>
         </section>
 
-        <!-- ABA: ASCENSÃO -->
         <section id="tab-ascensao" class="tab-content">
             <div class="section-title">ASCENSÃO ARCANA</div>
             <div class="ascension-box" style="text-align: center; padding: 10px;">
@@ -152,37 +119,24 @@
                 <button class="btn-action purple-btn" id="btn-do-prestige" onclick="Game.prestige()">ASCENDER (Requer Nv. 50)</button>
             </div>
         </section>
-
     </main>
 
-    <!-- Navegação Inferior -->
     <nav id="bottom-nav">
-        <div class="nav-item active" onclick="UI.switchTab('atributos', this)">
-            <div class="nav-icon">📊</div><span>Atributos</span>
-        </div>
-        <div class="nav-item" onclick="UI.switchTab('upgrades', this)">
-            <div class="nav-icon">⚔️</div><span>Upgrades</span>
-        </div>
-        <div class="nav-item center-btn" onclick="UI.switchTab('skills', this)">
-            <div class="center-orb"></div><span>Skills</span>
-        </div>
-        <div class="nav-item" onclick="UI.switchTab('ascensao', this)">
-            <div class="nav-icon">🔥</div><span>Ascensão</span>
-        </div>
-        <div class="nav-item" id="btn-install" style="display:none;" onclick="installPWA()">
-            <div class="nav-icon">📱</div><span>Instalar</span>
-        </div>
+        <div class="nav-item active" onclick="UI.switchTab('atributos', this)"><div class="nav-icon">📊</div><span>Atributos</span></div>
+        <div class="nav-item" onclick="UI.switchTab('upgrades', this)"><div class="nav-icon">⚔️</div><span>Upgrades</span></div>
+        <div class="nav-item" onclick="UI.switchTab('skills', this)"><div class="nav-icon">🔮</div><span>Skills</span></div>
+        <div class="nav-item" onclick="UI.switchTab('ascensao', this)"><div class="nav-icon">🔥</div><span>Ascensão</span></div>
+        <div class="nav-item" id="btn-install" style="display:none;" onclick="installPWA()"><div class="nav-icon">📱</div><span>Instalar</span></div>
     </nav>
 </div>
 
-<!-- Modal de Skill -->
 <div id="skill-modal" class="modal-overlay" onclick="if(event.target === this) UI.closeModal('skill-modal')">
     <div class="modal-box">
         <h2 id="modal-skill-title">Nome da Skill</h2>
         <p id="modal-skill-desc">Descrição da habilidade.</p>
         <div id="modal-skill-cost" class="highlight" style="margin-bottom: 15px; font-weight: bold;">Custo: 1 SP</div>
         <div class="modal-btn-group">
-            <button class="btn-action outline" onclick="UI.closeModal('skill-modal')">Cancelar</button>
+            <button class="btn-action outline" onclick="UI.closeModal('skill-modal')">Fechar</button>
             <button class="btn-action blue-btn" id="btn-learn-skill" onclick="Game.buySkill()">Aprender</button>
         </div>
     </div>

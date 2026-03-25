@@ -3,60 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="manifest" href="manifest.json">
-    <title>Twisting Slash: Elemental Tree</title>
+    <title>Twisting Slash: Idle RPG</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="game-container">
-        <header id="top-bar">
-            <div class="stat"><span class="label">OURO:</span> <span id="val-gold">0</span></div>
-            <div class="stat"><span class="label">NÍVEL:</span> <span id="val-level">1</span></div>
-            <div id="xp-container">
-                <div id="xp-bar"><div id="xp-fill"></div></div>
-                <span id="xp-text">0 / 100</span>
+
+<div id="app-container">
+    <!-- Fundo e Jogo -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD Superior -->
+    <header id="hud-top">
+        <div class="player-profile">
+            <div class="avatar"></div>
+            <div class="info">
+                <h1 id="player-name">SlashMaster</h1>
+                <span>NÍVEL <span id="val-level">1</span></span>
+                <div class="mini-xp-bar"><div id="mini-xp-fill"></div></div>
             </div>
-        </header>
+        </div>
+        <div class="resources">
+            <div class="res gold">🪙 <span id="val-gold">0</span></div>
+            <div class="res essence">🔮 <span id="val-essence">0</span></div>
+        </div>
+    </header>
 
-        <main id="game-content">
-            <section id="main-viewport">
-                <canvas id="canvas-battle"></canvas>
-                <div id="synergy-overlay"></div>
-            </section>
+    <!-- Painéis Flutuantes Laterais -->
+    <aside class="side-panel left" id="panel-attributes">
+        <div class="panel-title">ATRIBUTOS</div>
+        <div class="pts-disp">Pontos: <span id="val-pts-side" class="highlight">0</span></div>
+        <div class="stat-row"><span class="icon str">⚔️</span> <span id="ov-str">0</span></div>
+        <div class="stat-row"><span class="icon ene">⚡</span> <span id="ov-ene">0</span></div>
+        <div class="stat-row"><span class="icon agi">🌪️</span> <span id="ov-agi">0</span></div>
+    </aside>
 
-            <aside id="side-panel">
-                <div class="panel-tabs">
-                    <button class="tab-btn active" data-target="upgrades">UPGRADES</button>
-                    <button class="tab-btn" data-target="skills">SKILLS</button>
-                </div>
+    <aside class="side-panel right" id="panel-status">
+        <div class="panel-title">STATUS</div>
+        <div class="stat-dps">DPS<br><span id="ov-dps" class="highlight">0</span></div>
+        <div class="stat-mana">MANA <span id="ov-mana-regen">0</span>/s</div>
+        <div class="stat-cost">Custo: <span id="ov-cost">0</span>/s</div>
+        
+        <div id="offline-claim-box" style="display: none;">
+            <div class="panel-title">OFFLINE</div>
+            <div id="offline-time">00:00:00</div>
+            <button class="btn-action gold-btn" onclick="Game.claimOffline()">COLETAR</button>
+        </div>
+    </aside>
 
-                <div id="upgrades" class="tab-content active">
-                    <div class="upgrade-item">
-                        <span>Dano: <b id="upg-dmg-val">10</b></span>
-                        <button id="btn-upg-dmg">UP (<span id="cost-dmg">10</span>)</button>
-                    </div>
-                    <div class="upgrade-item">
-                        <span>Inimigos Máx: <b id="upg-max-val">1</b></span>
-                        <button id="btn-upg-max">UP (<span id="cost-max">50</span>)</button>
-                    </div>
-                    <button id="btn-respec" class="danger-btn">REINICIAR SKILLS</button>
-                </div>
-
-                <div id="skills" class="tab-content">
-                    <div id="skill-tree-root"></div>
-                </div>
-            </aside>
-        </main>
+    <!-- Informação de Onda / Inimigos -->
+    <div id="wave-info">
+        <span class="icon">💀</span> INIMIGOS RESTANTES <span id="val-wave">0/10</span>
     </div>
 
-    <div id="modal-offline" class="modal hidden">
-        <div class="modal-box">
-            <h2>BEM-VINDO DE VOLTA</h2>
-            <p id="offline-report"></p>
-            <button id="btn-claim-offline">COLETAR</button>
+    <!-- Barras Centrais Inferiores -->
+    <div id="center-bars">
+        <div class="bar-wrapper">
+            <div class="bar-labels"><span class="blue">💧 MANA</span> <span id="val-mana-txt">0 / 0</span></div>
+            <div class="bar-bg"><div class="bar-fill blue-fill" id="bar-mana"></div></div>
+        </div>
+        <div class="dps-highlight">DPS: <span id="val-dps-main">0</span></div>
+        <div class="bar-wrapper">
+            <div class="bar-labels"><span class="green">EXP Nível <span id="val-level-bar">1</span></span> <span id="val-xp-txt">0 / 0</span></div>
+            <div class="bar-bg"><div class="bar-fill green-fill" id="bar-xp"></div></div>
         </div>
     </div>
 
-    <script src="game.js"></script>
+    <!-- Área de Conteúdo Dinâmico (Abas) -->
+    <main id="main-content">
+        
+        <!-- ABA: ATRIBUTOS -->
+        <section id="tab-atributos" class="tab-content active">
+            <div class="section-title">APRIMORAMENTO DE ATRIBUTOS</div>
+            <div class="pts-center">Pontos Disponíveis: <span id="val-pts-main" class="highlight">0</span></div>
+            
+            <div class="cards-container">
+                <div class="attr-card str">
+                    <div class="card-top">
+                        <div class="icon-box">⚔️</div>
+                        <div class="card-info"><h4>FORÇA</h4><span id="card-str" class="val">0</span></div>
+                        <button class="btn-add" id="btn-add-str" onclick="Game.addStat('str')">+</button>
+                    </div>
+                    <div class="card-bot">+ Dano Base</div>
+                </div>
+                <div class="attr-card ene">
+                    <div class="card-top">
+                        <div class="icon-box">⚡</div>
+                        <div class="card-info"><h4>ENERGIA</h4><span id="card-ene" class="val">0</span></div>
+                        <button class="btn-add" id="btn-add-ene" onclick="Game.addStat('ene')">+</button>
+                    </div>
+                    <div class="card-bot">+ Mana / - Custo</div>
+                </div>
+                <div class="attr-card agi">
+                    <div class="card-top">
+                        <div class="icon-box">🌪️</div>
+                        <div class="card-info"><h4>VELOCIDADE</h4><span id="card-agi" class="val">0</span></div>
+                        <button class="btn-add" id="btn-add-agi" onclick="Game.addStat('agi')">+</button>
+                    </div>
+                    <div class="card-bot">+ Rotação (RPS)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA: UPGRADES (Inimigos) -->
+        <section id="tab-upgrades" class="tab-content">
+            <div class="section-title">UPGRADES DE COMBATE</div>
+            <div class="list-container">
+                <div class="list-item">
+                    <div><h4>Nível dos Inimigos (Lv.<span id="upg-lvl-val">1</span>)</h4><p>Mais HP, Ouro e EXP.</p></div>
+                    <button class="btn-buy" id="btn-upg-lvl" onclick="Game.buyEnemyLevel()">🪙 <span id="cost-lvl">10</span></button>
+                </div>
+                <div class="list-item">
+                    <div><h4>Enxame Sombrio (<span id="upg-max-val">1</span>/10)</h4><p>Mais inimigos simultâneos.</p></div>
+                    <button class="btn-buy" id="btn-upg-max" onclick="Game.buyMaxEnemies()">🪙 <span id="cost-max">50</span></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA: SKILLS -->
+        <section id="tab-skills" class="tab-content">
+            <div class="section-title">ÁRVORE ELEMENTAL</div>
+            <div class="skill-header">
+                <span>SP Disponível: <span id="val-sp" class="highlight">0</span></span>
+                <button class="btn-action small" onclick="Game.resetSkills()">Resetar Skills</button>
+            </div>
+            <div class="element-filters">
+                <button class="ele-btn fire active" onclick="UI.filterSkills('fire')">Fogo</button>
+                <button class="ele-btn ice" onclick="UI.filterSkills('ice')">Gelo</button>
+                <button class="ele-btn light" onclick="UI.filterSkills('lightning')">Raio</button>
+                <button class="ele-btn wind" onclick="UI.filterSkills('wind')">Vento</button>
+                <button class="ele-btn poison" onclick="UI.filterSkills('poison')">Veneno</button>
+            </div>
+            <div id="skill-tree-container" class="tree-container"></div>
+        </section>
+
+        <!-- ABA: ASCENSÃO -->
+        <section id="tab-ascensao" class="tab-content">
+            <div class="section-title">ASCENSÃO ARCANA</div>
+            <div class="ascension-box">
+                <p>Sacrifique seu progresso atual para ganhar multiplicadores permanentes.</p>
+                <h2 class="purple-glow">+<span id="val-pending-essence">0</span> Essências</h2>
+                <button class="btn-action purple-btn" id="btn-do-prestige" onclick="Game.prestige()">ASCENDER (Requer Nv. 50)</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Navegação Inferior -->
+    <nav id="bottom-nav">
+        <div class="nav-item active" onclick="UI.switchTab('atributos', this)">
+            <div class="nav-icon">📊</div><span>Atributos</span>
+        </div>
+        <div class="nav-item" onclick="UI.switchTab('upgrades', this)">
+            <div class="nav-icon">⚔️</div><span>Upgrades</span>
+        </div>
+        <div class="nav-item center-btn" onclick="UI.switchTab('skills', this)">
+            <div class="center-orb"></div><span>Skills</span>
+        </div>
+        <div class="nav-item" onclick="UI.switchTab('ascensao', this)">
+            <div class="nav-icon">🔥</div><span>Ascensão</span>
+        </div>
+        <div class="nav-item" id="btn-install" style="display:none;" onclick="installPWA()">
+            <div class="nav-icon">📱</div><span>Instalar</span>
+        </div>
+    </nav>
+</div>
+
+<!-- Modais -->
+<div id="skill-modal" class="modal-overlay" onclick="if(event.target === this) UI.closeModal('skill-modal')">
+    <div class="modal-box">
+        <h2 id="modal-skill-title">Skill</h2>
+        <p id="modal-skill-desc">Descrição</p>
+        <div id="modal-skill-cost" class="highlight">Custo: 1 SP</div>
+        <div class="modal-btn-group">
+            <button class="btn-action outline" onclick="UI.closeModal('skill-modal')">Cancelar</button>
+            <button class="btn-action blue-btn" id="btn-learn-skill" onclick="Game.buySkill()">Aprender</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="game.js"></script>
 </body>
 </html>

@@ -3,93 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#050508">
-    <title>Twisting Slash: Elemental Evolution</title>
-    
     <link rel="manifest" href="manifest.json">
+    <title>Twisting Slash: Elemental Tree</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
     <div id="game-container">
-        <header id="game-header">
-            <div class="stat-box">
-                <span class="label">OURO</span>
-                <span id="gold-val" class="value neon-gold">0</span>
-            </div>
-            <div class="stat-box">
-                <span class="label">NÍVEL</span>
-                <span id="level-val" class="value neon-blue">1</span>
-            </div>
-            <div class="xp-bar-container">
-                <div id="xp-bar-fill"></div>
-                <span id="xp-text">XP: 0 / 100</span>
+        <header id="top-bar">
+            <div class="stat"><span class="label">OURO:</span> <span id="val-gold">0</span></div>
+            <div class="stat"><span class="label">NÍVEL:</span> <span id="val-level">1</span></div>
+            <div id="xp-container">
+                <div id="xp-bar"><div id="xp-fill"></div></div>
+                <span id="xp-text">0 / 100</span>
             </div>
         </header>
 
-        <main id="main-layout">
-            <section id="arena-section">
-                <div id="arena-overlay">
-                    <div id="synergy-alert" class="hidden"></div>
-                </div>
-                <canvas id="vfx-canvas"></canvas>
-                <div id="damage-numbers"></div>
+        <main id="game-content">
+            <section id="main-viewport">
+                <canvas id="canvas-battle"></canvas>
+                <div id="synergy-overlay"></div>
             </section>
 
-            <section id="ui-section">
-                <nav class="tabs">
-                    <button class="tab-btn active" data-tab="skills">ÁRVORE</button>
-                    <button class="tab-btn" data-tab="upgrades">MELHORIAS</button>
-                    <button class="tab-btn" data-tab="ascension">ASCENSÃO</button>
-                </nav>
-
-                <div class="tab-content">
-                    <div id="skills-tab" class="tab-pane active">
-                        <div class="tab-header">
-                            <h3>Habilidades Elementais</h3>
-                            <button id="btn-respec" class="secondary-btn">REDEFINIR PONTOS</button>
-                        </div>
-                        <div class="skill-tree" id="skill-tree-container">
-                            </div>
-                    </div>
-
-                    <div id="upgrades-tab" class="tab-pane">
-                        <div class="upgrade-list" id="upgrade-list">
-                            </div>
-                    </div>
-
-                    <div id="ascension-tab" class="tab-pane">
-                        <div class="ascension-info">
-                            <p>Essência Atual: <span id="essence-val" class="neon-purple">0</span></p>
-                            <button id="btn-ascend" class="main-btn" disabled>ASCENDER (NV. 100)</button>
-                        </div>
-                    </div>
+            <aside id="side-panel">
+                <div class="panel-tabs">
+                    <button class="tab-btn active" data-target="upgrades">UPGRADES</button>
+                    <button class="tab-btn" data-target="skills">SKILLS</button>
                 </div>
-            </section>
+
+                <div id="upgrades" class="tab-content active">
+                    <div class="upgrade-item">
+                        <span>Dano: <b id="upg-dmg-val">10</b></span>
+                        <button id="btn-upg-dmg">UP (<span id="cost-dmg">10</span>)</button>
+                    </div>
+                    <div class="upgrade-item">
+                        <span>Inimigos Máx: <b id="upg-max-val">1</b></span>
+                        <button id="btn-upg-max">UP (<span id="cost-max">50</span>)</button>
+                    </div>
+                    <button id="btn-respec" class="danger-btn">REINICIAR SKILLS</button>
+                </div>
+
+                <div id="skills" class="tab-content">
+                    <div id="skill-tree-root"></div>
+                </div>
+            </aside>
         </main>
     </div>
 
-    <div id="offline-modal" class="modal hidden">
-        <div class="modal-content">
-            <h2>BEM-VINDO DE VOLTA!</h2>
-            <p>Seus heróis lutaram enquanto você estava fora.</p>
-            <div class="offline-rewards">
-                <p>Tempo: <span id="offline-time">0h 0m</span></p>
-                <p>Ouro ganho: <span id="offline-gold" class="neon-gold">0</span></p>
-                <p>XP ganho: <span id="offline-xp" class="neon-blue">0</span></p>
-            </div>
-            <button id="close-offline" class="main-btn">COLETAR</button>
+    <div id="modal-offline" class="modal hidden">
+        <div class="modal-box">
+            <h2>BEM-VINDO DE VOLTA</h2>
+            <p id="offline-report"></p>
+            <button id="btn-claim-offline">COLETAR</button>
         </div>
     </div>
 
     <script src="game.js"></script>
-    <script>
-        // Registrar Service Worker para PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(err => console.log("SW Fail:", err));
-        }
-    </script>
 </body>
 </html>

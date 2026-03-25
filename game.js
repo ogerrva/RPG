@@ -1,136 +1,122 @@
 /**
  * TWISTING SLASH: ELEMENTAL - CORE ENGINE
+ * Interface Adaptada ao Layout Dark RPG
  */
 
 const Game = {
-    // 1. CONFIGURAÇÕES E ESTADO
     state: {
         gold: 0,
+        essence: 0,
         xp: 0,
         level: 1,
-        essence: 0,
-        mana: 100,
-        maxMana: 100,
-        manaRegen: 0.5,
+        points: 0,
+        stats: { str: 10, ene: 10, agi: 10 },
+        mana: 1050,
+        maxMana: 1050,
+        dps: 124500, // Exemplo inicial baseado na sua imagem
         lastSave: Date.now(),
-        dps: 10,
-        stats: { str: 1, agi: 1, int: 1, vit: 1 },
-        skills: [],
-        unlockedElements: []
+        stage: 1,
+        wave: 1
     },
 
     config: {
-        saveKey: 'TwistingSlash_v2_Save',
-        baseXP: 100,
-        xpExponent: 1.5,
-        enemyBaseHP: 50,
-        enemyBaseXP: 15
+        saveKey: 'TwistingSlash_RPG_Save',
+        baseXP: 120000, // Base do XP para o nível 128 da imagem
+        xpScale: 1.15,
+        manaRegenBase: 5,
     },
 
     init() {
-        this.setupCanvas();
         this.loadGame();
-        this.setupEventListeners();
-        this.spawnEnemies();
+        this.setupCanvas();
         this.checkOfflineProgress();
         this.setupPWA();
-        this.loop();
+        
+        // Iniciar Loops
+        setInterval(() => this.saveGame(), 10000); // Auto-save 10s
+        this.gameLoop();
+        
+        console.log("Sistema de Combate Iniciado...");
     },
 
     setupCanvas() {
-        this.canvases = {
-            bg: document.getElementById('bg-canvas'),
-            game: document.getElementById('game-canvas'),
-            fx: document.getElementById('fx-canvas')
-        };
-        this.ctxs = {};
-        for (let key in this.canvases) {
-            this.ctxs[key] = this.canvases[key].getContext('2d');
-            this.resize();
-        }
+        this.cvs = document.getElementById('game-canvas');
+        this.ctx = this.cvs.getContext('2d');
+        this.fxCvs = document.getElementById('fx-canvas');
+        this.fxCtx = this.fxCvs.getContext('2d');
+        
+        this.resize();
         window.addEventListener('resize', () => this.resize());
     },
 
     resize() {
-        for (let key in this.canvases) {
-            this.canvases[key].width = window.innerWidth;
-            this.canvases[key].height = window.innerHeight;
-        }
-    },
-
-    // 2. SISTEMA VISUAL (PARTÍCULAS E SKILLS)
-    particles: [],
-    
-    createEffect(type, x, y, color) {
-        const count = type === 'explosion' ? 20 : 5;
-        for (let i = 0; i < count; i++) {
-            this.particles.push({
-                x, y,
-                vx: (Math.random() - 0.5) * 10,
-                vy: (Math.random() - 0.5) * 10,
-                life: 1.0,
-                color: color || '#fff',
-                type: type // 'lightning', 'fire', 'wind'
-            });
-        }
-    },
-
-    drawFX() {
-        const ctx = this.ctxs.fx;
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-        
-        this.particles.forEach((p, index) => {
-            ctx.beginPath();
-            ctx.globalAlpha = p.life;
-            
-            if (p.type === 'lightning') {
-                ctx.strokeStyle = '#00f2ff';
-                ctx.lineWidth = 2;
-                ctx.moveTo(p.x, p.y);
-                ctx.lineTo(p.x + (Math.random()-0.5)*20, p.y + (Math.random()-0.5)*20);
-                ctx.stroke();
-            } else {
-                ctx.fillStyle = p.color;
-                ctx.arc(p.x, p.y, p.life * 4, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            p.x += p.vx;
-            p.y += p.vy;
-            p.life -= 0.02;
-            if (p.life <= 0) this.particles.splice(index, 1);
+        const container = document.querySelector('.combat-zone');
+        [this.cvs, this.fxCvs].forEach(c => {
+            c.width = container.clientWidth;
+            c.height = container.clientHeight;
         });
     },
 
-    // 3. MECÂNICA DE PROGRESSÃO E BALANCEAMENTO
-    gainXP(amount) {
-        this.state.xp += amount;
-        const required = Math.floor(this.config.baseXP * Math.pow(this.state.level, this.config.xpExponent));
-        
-        if (this.state.xp >= required) {
-            this.state.xp -= required;
-            this.state.level++;
-            this.createEffect('explosion', window.innerWidth/2, window.innerHeight/2, '#a200ff');
+    // --- SISTEMA DE ATRIBUTOS (CONFORME A IMAGEM) ---
+    buyStat(stat) {
+        if (this.state.points > 0) {
+            this.state.points--;
+            this.state.stats[stat]++;
+            this.updateStatsLogic();
             this.updateUI();
+            this.createEffect('upgrade', window.innerWidth/2, window.innerHeight/2, '#00aaff');
         }
-        this.updateXPBar(required);
     },
 
-    // 4. IDLE OFFLINE (PROGRESSO)
+    updateStatsLogic() {
+        // Balanceamento: Força aumenta DPS, Energia aumenta Mana, Agilidade aumenta Velocidade
+        this.state.dps = this.state.stats.str * 1200; 
+        this.state.maxMana = this.state.stats.ene * 2;
+        this.state.manaRegen = 2 + (this.state.stats.ene * 0.1);
+    },
+
+    // --- PROGRESSÃO E XP ---
+    gainXP(amount) {
+        this.state.xp += amount;
+        let reqXP = this.getRequiredXP();
+        
+        if (this.state.xp >= reqXP) {
+            this.state.xp -= reqXP;
+            this.state.level++;
+            this.state.points += 5; // Ganha 5 pontos por nível como na imagem
+            this.updateUI();
+        }
+        this.updateBars();
+    },
+
+    getRequiredXP() {
+        return Math.floor(this.config.baseXP * Math.pow(this.state.level / 100, 1.5));
+    },
+
+    // --- MECÂNICA IDLE OFFLINE ---
     checkOfflineProgress() {
         const now = Date.now();
-        const diff = (now - this.state.lastSave) / 1000; // segundos
+        const diffInSeconds = Math.floor((now - this.state.lastSave) / 1000);
         
-        if (diff > 60) { // Mais de 1 minuto fora
-            const goldEarned = Math.floor(diff * (this.state.dps * 0.1));
-            const xpEarned = Math.floor(diff * (this.state.level * 2));
-            
-            this.state.gold += goldEarned;
-            this.gainXP(xpEarned);
+        if (diffInSeconds > 60) { // Mínimo 1 minuto
+            const hours = Math.floor(diffInSeconds / 3600);
+            const mins = Math.floor((diffInSeconds % 3600) / 60);
+            const secs = diffInSeconds % 60;
 
-            document.getElementById('idle-gold').innerText = goldEarned;
-            document.getElementById('idle-xp').innerText = xpEarned;
-            document.getElementById('idle-modal').classList.remove('hidden');
+            // Ganhos balanceados (ajuste os multiplicadores conforme desejar)
+            const goldEarned = Math.floor(diffInSeconds * (this.state.dps * 0.05));
+            const essenceEarned = Math.floor(diffInSeconds * 0.01);
+
+            this.state.gold += goldEarned;
+            this.state.essence += essenceEarned;
+
+            // Mostrar Modal
+            const modal = document.getElementById('idle-modal');
+            document.querySelector('.idle-time').innerText = 
+                `🕒 ${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+            document.getElementById('idle-gold').innerText = this.format(goldEarned);
+            document.getElementById('idle-essence').innerText = this.format(essenceEarned);
+            modal.classList.remove('hidden');
         }
     },
 
@@ -139,42 +125,71 @@ const Game = {
         this.saveGame();
     },
 
-    // 5. SISTEMA PWA (INSTALAÇÃO)
-    setupPWA() {
-        let deferredPrompt;
-        const btn = document.getElementById('pwa-install');
+    // --- MOTOR VISUAL (PARTÍCULAS) ---
+    particles: [],
+    createEffect(type, x, y, color) {
+        const count = 15;
+        for(let i=0; i<count; i++) {
+            this.particles.push({
+                x, y,
+                vx: (Math.random()-0.5)*8,
+                vy: (Math.random()-0.5)*8,
+                life: 1.0,
+                color: color,
+                type: type
+            });
+        }
+    },
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            btn.classList.remove('hidden');
-        });
-
-        btn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') btn.classList.add('hidden');
-                deferredPrompt = null;
+    drawEffects() {
+        this.fxCtx.clearRect(0,0,this.fxCvs.width, this.fxCvs.height);
+        this.particles.forEach((p, i) => {
+            this.fxCtx.globalAlpha = p.life;
+            this.fxCtx.fillStyle = p.color;
+            
+            // Efeito de faísca/eletricidade
+            if(p.type === 'lightning') {
+                this.fxCtx.fillRect(p.x, p.y, 2, 10);
+            } else {
+                this.fxCtx.beginPath();
+                this.fxCtx.arc(p.x, p.y, p.life*3, 0, Math.PI*2);
+                this.fxCtx.fill();
             }
+
+            p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+            if(p.life <= 0) this.particles.splice(i, 1);
         });
     },
 
-    // 6. LOOP PRINCIPAL
-    loop() {
-        // Lógica de Combate (Simulação rápida para o exemplo)
-        this.state.mana = Math.min(this.state.maxMana, this.state.mana + this.state.manaRegen/60);
+    // --- INTERFACE E UTILITÁRIOS ---
+    updateUI() {
+        document.getElementById('val-gold').innerText = this.format(this.state.gold);
+        document.getElementById('val-essence').innerText = this.format(this.state.essence);
+        document.getElementById('val-level').innerText = `NÍVEL ${this.state.level}`;
+        document.getElementById('curr-lvl').innerText = this.state.level;
+        document.getElementById('val-points').innerText = this.state.points;
+        document.getElementById('val-dps').innerText = this.format(this.state.dps);
         
-        this.drawFX();
-        this.updateUI();
-        
-        // Auto-save a cada 30 segundos
-        if (Date.now() - this.state.lastSave > 30000) this.saveGame();
-        
-        requestAnimationFrame(() => this.loop());
+        document.getElementById('stat-str').innerText = this.state.stats.str;
+        document.getElementById('stat-ene').innerText = this.state.stats.ene;
+        document.getElementById('stat-agi').innerText = this.state.stats.agi;
     },
 
-    // UTILITÁRIOS
+    updateBars() {
+        const manaPerc = (this.state.mana / this.state.maxMana) * 100;
+        document.getElementById('mana-fill').style.width = `${manaPerc}%`;
+        document.getElementById('mana-text').innerText = `${Math.floor(this.state.mana)} / ${this.state.maxMana}`;
+
+        const xpPerc = (this.state.xp / this.getRequiredXP()) * 100;
+        document.getElementById('xp-fill').style.width = `${xpPerc}%`;
+    },
+
+    format(num) {
+        if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return Math.floor(num);
+    },
+
     saveGame() {
         this.state.lastSave = Date.now();
         localStorage.setItem(this.config.saveKey, JSON.stringify(this.state));
@@ -182,47 +197,30 @@ const Game = {
 
     loadGame() {
         const saved = localStorage.getItem(this.config.saveKey);
-        if (saved) {
-            this.state = { ...this.state, ...JSON.parse(saved) };
-        }
+        if (saved) this.state = {...this.state, ...JSON.parse(saved)};
+        this.updateStatsLogic();
     },
 
-    updateUI() {
-        document.getElementById('val-gold').innerText = Math.floor(this.state.gold);
-        document.getElementById('val-level').innerText = `NV. ${this.state.level}`;
-        document.getElementById('val-essence').innerText = this.state.essence;
-        
-        const manaPercent = (this.state.mana / this.state.maxMana) * 100;
-        document.getElementById('mana-fill').style.width = `${manaPercent}%`;
-        document.getElementById('mana-text').innerText = `${Math.floor(this.state.mana)}/${this.state.maxMana}`;
-    },
-
-    updateXPBar(required) {
-        const percent = (this.state.xp / required) * 100;
-        document.getElementById('xp-fill').style.width = `${percent}%`;
-    },
-
-    setupEventListeners() {
-        // Exemplo de clique para efeito (teste de raios)
-        this.canvases.game.addEventListener('click', (e) => {
-            this.createEffect('lightning', e.clientX, e.clientY);
-            this.state.gold += 1; // Pequeno ganho no clique
+    setupPWA() {
+        // Lógica de instalação (Manifest)
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            console.log("PWA Pronto para instalar.");
         });
-    }
-};
-
-// Objeto Global para Interface
-const UI = {
-    toggleTab(tabId) {
-        const panel = document.getElementById(`tab-${tabId}`);
-        const isHidden = panel.classList.contains('hidden');
-        this.closeAll();
-        if (isHidden) panel.classList.remove('hidden');
     },
-    closeAll() {
-        document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+
+    gameLoop() {
+        // Regeneração de Mana
+        if(this.state.mana < this.state.maxMana) {
+            this.state.mana += this.state.manaRegen / 60;
+        }
+
+        this.drawEffects();
+        this.updateBars();
+        this.updateUI();
+        
+        requestAnimationFrame(() => this.gameLoop());
     }
 };
 
-// Iniciar
 window.onload = () => Game.init();

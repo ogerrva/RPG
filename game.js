@@ -749,6 +749,3 @@ const UI = {
 };
 
 window.onload = Game.init;
-</script>
-</body>
-</html>

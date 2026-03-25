@@ -1,212 +1,268 @@
 /* ==========================================================================
-   1. PALETA DE CORES E FONTES
+   CONFIGURAÇÕES GLOBAIS E VARIÁVEIS NEON
    ========================================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap');
-
 :root {
     --bg-dark: #050508;
-    --panel-bg: rgba(11, 12, 16, 0.95);
-    --panel-border: #1f2233;
-    --text-main: #ffffff;
-    --text-muted: #8a8d9e;
-    
-    --neon-red: #ff2a4b;
-    --neon-blue: #00aaff;
-    --neon-green: #00ff66;
-    --neon-gold: #ffcc00;
-    --neon-purple: #b366ff;
-
-    --ele-fire: #ff4d00;
-    --ele-ice: #00e5ff;
-    --ele-light: #ffe600;
-    --ele-wind: #00ff88;
-    --ele-poison: #b300ff;
-
-    --font-main: 'Rajdhani', sans-serif;
+    --panel-bg: rgba(15, 15, 25, 0.9);
+    --accent: #00f2ff;
+    --gold: #ffd700;
+    --xp: #a200ff;
+    --mana: #0066ff;
+    --danger: #ff2a4b;
+    --glass: rgba(255, 255, 255, 0.05);
+    --border: rgba(0, 242, 255, 0.3);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Rajdhani', sans-serif;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
 
-body, html {
-    width: 100%; height: 100%;
+body {
     background-color: var(--bg-dark);
-    color: var(--text-main);
-    font-family: var(--font-main);
+    color: white;
+    overflow: hidden; /* Impede scroll na página toda */
+    height: 100vh;
+    width: 100vw;
+}
+
+/* ==========================================================================
+   CAMADAS DO JOGO (CANVAS)
+   ========================================================================== */
+#game-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#fx-canvas { pointer-events: none; } /* Efeitos não bloqueiam cliques */
+
+/* ==========================================================================
+   HUD SUPERIOR (RECURSOS)
+   ========================================================================== */
+#hud-top {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+}
+
+.stat-group {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.gold { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+.essence { border-color: var(--accent); color: var(--accent); }
+
+.xp-bar-container {
+    width: 100px;
+    height: 8px;
+    background: #111;
+    border-radius: 4px;
     overflow: hidden;
+    margin-top: 4px;
 }
 
-#app-container {
-    position: relative; width: 100vw; height: 100vh;
-    background: radial-gradient(circle at center, #1a0b0b 0%, #050508 100%);
-    display: flex; flex-direction: column;
+#xp-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--xp);
+    box-shadow: 0 0 10px var(--xp);
+    transition: width 0.3s ease;
 }
 
 /* ==========================================================================
-   2. HUD SUPERIOR (Status e Recursos)
+   BARRA DE MANA (DINÂMICA)
    ========================================================================== */
-#top-bar {
-    position: absolute; top: 0; left: 0; width: 100%;
-    padding: 10px 20px; z-index: 10;
-    display: flex; justify-content: space-between; align-items: flex-start;
-    background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%);
-    pointer-events: none; 
+#mana-container {
+    position: absolute;
+    bottom: 100px; /* Acima da navegação */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 250px;
+    height: 20px;
+    background: rgba(0,0,0,0.5);
+    border: 2px solid var(--mana);
+    border-radius: 10px;
+    overflow: hidden;
+    z-index: 5;
 }
 
-.header-group { pointer-events: auto; display: flex; gap: 20px; align-items: center; }
-
-.stat-box { 
-    display: inline-block; min-width: 80px; text-align: left; 
-    font-variant-numeric: tabular-nums; text-shadow: 2px 2px 0 #000; font-size: 12px; font-weight: bold;
+#mana-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #0044ff, #00c3ff);
+    box-shadow: 0 0 15px var(--mana);
 }
-.stat-gold { color: var(--neon-gold); } 
-.stat-energy { color: var(--neon-purple); } 
-.stat-dps { color: var(--neon-red); min-width: 120px; }
 
-.player-level-box { display: flex; flex-direction: column; min-width: 110px; cursor: help; }
-.player-xp-bg { width: 100%; height: 6px; background: #000; border: 1px solid var(--panel-border); margin-top: 4px; }
-.player-xp-fill { height: 100%; background: var(--neon-green); width: 0%; transition: width 0.1s linear; }
-
-/* ==========================================================================
-   3. BOTÕES E COMPONENTES
-   ========================================================================== */
-.hdr-btn, .act-btn {
-    background: #1a1a24; color: #fff; padding: 10px 15px; font-size: 10px; cursor: pointer;
-    border: 1px solid var(--panel-border); font-family: var(--font-main); font-weight: bold; text-transform: uppercase;
-    border-radius: 4px; transition: all 0.2s;
+#mana-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    top: 1px;
+    text-shadow: 1px 1px 2px black;
 }
-.hdr-btn:hover, .act-btn:hover:not(:disabled) { background: #2a2a3a; border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0,170,255,0.3); }
-.hdr-btn:active, .act-btn:active:not(:disabled) { transform: scale(0.95); }
-.act-btn { width: 100%; margin-top: 8px; }
-.act-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #333; background: #111; }
-
-.btn-danger { border-color: var(--neon-red); color: var(--neon-red); }
-.btn-equip { background: rgba(0,255,102,0.1); border-color: var(--neon-green); color: var(--neon-green); }
-.btn-special { background: rgba(255,42,75,0.1); border-color: var(--neon-red); color: var(--neon-red); animation: pulse 2s infinite; }
-
-@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 42, 75, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(255, 42, 75, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 42, 75, 0); } }
 
 /* ==========================================================================
-   4. LAYOUT PRINCIPAL E SCROLL
+   NAVEGAÇÃO (MOBILE ADAPTIVE)
    ========================================================================== */
-#main-area { display: flex; flex-direction: row; flex: 1; height: 100vh; overflow: hidden; }
-
-#game-view { flex: 1.2; position: relative; background: #000; overflow: hidden; border-right: 2px solid var(--panel-border); }
-canvas { display: block; width: 100%; height: 100%; position: absolute; top: 0; left: 0; image-rendering: pixelated; z-index: 1; }
-
-.ui-panel { flex: 1; background: var(--panel-bg); display: flex; flex-direction: column; min-height: 0; z-index: 5; backdrop-filter: blur(5px); }
-.panel-content { flex: 1; overflow-y: auto; padding: 15px; min-height: 0; }
-
-::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 3px; }
-
-/* ==========================================================================
-   5. ABAS E LISTAS (UI)
-   ========================================================================== */
-.tabs { display: flex; background: #0a0a0f; border-bottom: 1px solid var(--panel-border); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-.tabs::-webkit-scrollbar { display: none; }
-.tab { flex: 1; min-width: 75px; padding: 15px 5px; text-align: center; cursor: pointer; font-size: 10px; font-weight: bold; color: var(--text-muted); border-right: 1px solid var(--panel-border); text-transform: uppercase; }
-.tab.active { color: var(--neon-gold); background: var(--panel-bg); border-bottom: 2px solid var(--neon-gold); text-shadow: 0 0 5px rgba(255,204,0,0.5); }
-.tab.special-tab { color: var(--neon-red); }
-
-.tab-content { display: none; } .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-.list-item { background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); padding: 15px; margin-bottom: 12px; border-radius: 6px; }
-.list-item.active { border-color: var(--neon-green); background: rgba(0, 255, 102, 0.05); }
-.list-item.equipped { border-color: var(--neon-gold); background: rgba(255, 204, 0, 0.05); }
-
-.item-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-weight: bold; text-shadow: 1px 1px 0 #000; }
-.item-desc { font-size: 10px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4; }
-.item-stats { font-size: 10px; color: var(--neon-gold); margin-bottom: 8px; }
-
-.progress-bg { width: 100%; height: 6px; background: #000; border: 1px solid var(--panel-border); margin-bottom: 8px; border-radius: 3px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--neon-green); width: 0%; transition: width 0.1s linear; }
-
-.aba-title { font-size: 12px; color: var(--neon-gold); text-align: center; margin-bottom: 10px; font-weight: bold; }
-.aba-desc { font-size: 10px; color: var(--text-muted); margin-bottom: 15px; text-align: center; line-height: 1.5; }
-.aba-highlight { font-size: 10px; color: var(--neon-gold); margin-bottom: 15px; text-align: center; font-weight: bold; }
-.divisor { border-color: var(--panel-border); margin: 15px 0; border-style: dashed; }
-
-/* ==========================================================================
-   6. SUBMENUS E SLOTS DE INVENTÁRIO
-   ========================================================================== */
-.sub-tabs { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; scrollbar-width: none; border-bottom: 1px solid var(--panel-border);}
-.sub-tabs::-webkit-scrollbar { display: none; }
-.sub-tab-btn { background: #0a0a0f; color: var(--text-muted); padding: 8px 12px; font-size: 10px; font-family: var(--font-main); font-weight: bold; border: 1px solid var(--panel-border); cursor: pointer; white-space: nowrap; border-radius: 4px; }
-.sub-tab-btn.active { background: var(--panel-bg); color: var(--neon-gold); border-color: var(--neon-gold); }
-
-.equip-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.3); border: 1px dashed var(--panel-border); border-radius: 6px; }
-.equip-slot { flex: 1 1 30%; min-width: 80px; padding: 12px 8px; background: #0a0a0f; border: 1px solid var(--panel-border); text-align: center; font-size: 9px; color: #888; cursor: pointer; transition: all 0.2s; border-radius: 4px; }
-.equip-slot:hover { border-color: var(--neon-blue); transform: translateY(-2px); }
-.equip-slot.filled { border-color: var(--neon-gold); color: var(--neon-gold); background: rgba(255,204,0,0.05); }
-.equip-slot span { display: block; margin-top: 8px; font-size: 10px; color: #fff; font-weight: bold; text-shadow: 1px 1px 0 #000;}
-
-.combo-alert { font-size: 10px; font-weight: bold; text-align: center; padding: 15px; margin-bottom: 15px; border: 1px dashed var(--neon-red); background: rgba(255,42,75,0.1); color: var(--neon-red); text-shadow: 1px 1px 0 #000; animation: pulse 1s infinite; border-radius: 6px; }
-
-/* ==========================================================================
-   7. SISTEMA MU RESET UI
-   ========================================================================== */
-.ascend-box { text-align: center; padding: 20px; border: 1px dashed var(--neon-red); background: rgba(255,42,75,0.05); border-radius: 8px; }
-.ascend-box h3 { color: var(--neon-red); font-size: 16px; margin-bottom: 15px; text-shadow: 1px 1px 0 #000; }
-.mu-stats-container { background: #0a0a0f; border: 1px solid var(--panel-border); padding: 15px; margin-bottom: 15px; text-align: left; border-radius: 6px; }
-.mu-points-title { color: var(--neon-gold); margin-bottom: 15px; font-size: 12px; font-weight: bold; }
-.mu-points-title span { font-size: 16px; color: var(--neon-green); }
-.mu-stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 10px; color: #fff; border-bottom: 1px dashed #222; padding-bottom: 6px;}
-.pt-val { color: var(--neon-green); font-size: 12px; font-weight: bold; display: inline-block; width: 25px; text-align: center; }
-.pt-btn { background: #1a1a24; color: var(--neon-blue); border: 1px solid var(--neon-blue); cursor: pointer; font-family: var(--font-main); font-weight: bold; font-size: 14px; padding: 4px 10px; border-radius: 4px; }
-.pt-btn:active { background: var(--neon-blue); color: #000; }
-
-/* ==========================================================================
-   8. SKILL TREE (ÁRVORE VISUAL)
-   ========================================================================== */
-.element-filters { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; justify-content: center; }
-.ele-btn { padding: 8px 12px; background: #0a0a0f; border: 1px solid #333; color: #888; font-family: var(--font-main); font-size: 10px; font-weight: bold; cursor: pointer; border-radius: 4px; }
-.ele-btn.fire.active { border-color: var(--ele-fire); color: var(--ele-fire); box-shadow: 0 0 10px rgba(255,77,0,0.3); }
-.ele-btn.ice.active { border-color: var(--ele-ice); color: var(--ele-ice); box-shadow: 0 0 10px rgba(0,229,255,0.3); }
-.ele-btn.light.active { border-color: var(--ele-light); color: var(--ele-light); box-shadow: 0 0 10px rgba(255,230,0,0.3); }
-.ele-btn.wind.active { border-color: var(--ele-wind); color: var(--ele-wind); box-shadow: 0 0 10px rgba(0,255,136,0.3); }
-.ele-btn.poison.active { border-color: var(--ele-poison); color: var(--ele-poison); box-shadow: 0 0 10px rgba(179,0,255,0.3); }
-
-.tree-container { display: flex; flex-direction: column; align-items: center; gap: 25px; padding: 20px 0; position: relative; }
-.tree-row { display: flex; justify-content: center; gap: 40px; position: relative; width: 100%; }
-.tree-row::before { content: ''; position: absolute; top: -25px; left: 50%; transform: translateX(-50%); width: 2px; height: 25px; background: var(--panel-border); z-index: 0; }
-.tree-row:first-child::before { display: none; }
-.tree-row.branch::after { content: ''; position: absolute; top: -25px; left: calc(50% - 40px); width: 80px; height: 2px; background: var(--panel-border); z-index: 0; }
-
-.tree-node { width: 50px; height: 50px; border-radius: 50%; background: #0a0a0f; border: 2px solid #333; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; color: #555; cursor: pointer; z-index: 1; position: relative; transition: all 0.2s; box-shadow: 0 0 10px rgba(0,0,0,0.8); }
-.tree-node.available { border-color: var(--neon-gold); color: var(--neon-gold); animation: pulseNode 1.5s infinite; }
-.tree-node.unlocked { border-color: var(--neon-blue); color: #fff; background: rgba(0, 170, 255, 0.2); box-shadow: 0 0 15px var(--neon-blue); }
-.tree-node.ultimate { border-radius: 10px; width: 60px; height: 60px; border-color: var(--neon-purple); }
-
-@keyframes pulseNode { 0% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 204, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); } }
-
-/* ==========================================================================
-   9. MODAIS E TOASTS
-   ========================================================================== */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 20px; }
-.modal-box { background: var(--panel-bg); border: 1px solid var(--neon-blue); border-radius: 8px; padding: 20px; width: 100%; max-width: 350px; box-shadow: 0 0 30px rgba(0, 170, 255, 0.2); text-align: center; word-wrap: break-word; }
-.modal-title { font-size: 16px; color: #fff; margin-bottom: 10px; text-transform: uppercase; font-weight: bold; }
-.modal-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4; }
-.modal-cost { font-size: 14px; color: var(--neon-gold); font-weight: bold; margin-bottom: 20px; }
-
-.stat-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 10px; border-bottom: 1px dashed #222; padding-bottom: 5px; }
-.stat-val { color: var(--neon-green); font-weight: bold; }
-
-#toast-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; text-align: center; width: 90%; max-width: 400px; }
-.toast { background: rgba(0,0,0,0.95); border: 1px solid var(--neon-green); color: #fff; padding: 12px; font-size: 12px; margin-bottom: 5px; border-radius: 4px; font-weight: bold; animation: slideDown 0.3s forwards, fadeOut 0.5s 2s forwards; word-wrap: break-word; }
-.toast.error { border-color: var(--neon-red); color: var(--neon-red); }
-@keyframes slideDown { from { transform: translate(-50%, -20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-@keyframes fadeOut { to { opacity: 0; } }
-
-/* ==========================================================================
-   10. RESPONSIVIDADE MOBILE (Game Fixo no Topo)
-   ========================================================================== */
-@media (max-width: 768px) {
-    #main-area { flex-direction: column; }
-    #game-view { flex: none; height: 35vh; min-height: 250px; width: 100%; border-right: none; border-bottom: 2px solid var(--neon-red); }
-    .ui-panel { width: 100%; flex: 1; border-left: none; }
-    
-    /* Ajustes para caber no celular */
-    .tab { padding: 12px 5px; font-size: 9px; }
-    .stat-box { min-width: 70px; font-size: 10px; }
-    .player-level-box { min-width: 100px; }
+#main-nav {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    z-index: 20;
+    width: 90%;
+    max-width: 500px;
 }
+
+.nav-btn {
+    flex: 1;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    color: white;
+    padding: 12px 5px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.nav-btn:active { transform: scale(0.9); background: var(--accent); color: black; }
+
+/* ==========================================================================
+   PAINÉIS E MODAIS
+   ========================================================================== */
+.panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    max-height: 70vh;
+    background: var(--panel-bg);
+    border: 2px solid var(--accent);
+    border-radius: 20px;
+    backdrop-filter: blur(15px);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+}
+
+.panel-header {
+    padding: 15px;
+    border-bottom: 1px solid var(--glass);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.scroll-area {
+    padding: 15px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.hidden { display: none !important; }
+
+/* Estilo dos itens de Upgrade */
+.upgrade-card {
+    background: var(--glass);
+    margin-bottom: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid var(--accent);
+}
+
+.upgrade-card button {
+    background: var(--accent);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.upgrade-card button:disabled {
+    background: #444;
+    color: #888;
+}
+
+/* ==========================================================================
+   MODAL IDLE (OFFLINE)
+   ========================================================================== */
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #111;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    border: 2px solid var(--gold);
+    max-width: 300px;
+}
+
+.idle-stats { margin: 20px 0; font-size: 1.2rem; }
+
+/* ==========================================================================
+   RESPONSIVIDADE (MOBILE)
+   ========================================================================== */
+@media (max-width: 600px) {
+    #hud-top { padding: 10px; }
+    .stat-group { font-size: 0.9rem; padding: 4px 8px; }
+    #main-nav { bottom: 10px; gap: 8px; }
+    .nav-btn small { font-size: 10px; }
+    .panel { width: 95%; max-height: 80vh; }
+}
+
+/* Animação de entrada */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -45%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+}
+.panel { animation: fadeIn 0.3s ease-out; }

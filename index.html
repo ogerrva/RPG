@@ -4,25 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Twisting Slash: Idle RPG</title>
-    
-    <!-- Estilos e Fontes -->
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Configurações do PWA (App Instalável) -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00aaff">
-    
-    <!-- Ícone para dispositivos Apple (iOS) -->
     <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
 
 <div id="app-container">
-    <!-- Fundo e Jogo (Renderizado via JavaScript) -->
     <canvas id="gameCanvas"></canvas>
 
-    <!-- HUD Superior (Perfil e Recursos) -->
+    <!-- HUD Superior -->
     <header id="hud-top">
         <div class="player-profile">
             <div class="avatar"></div>
@@ -38,7 +30,7 @@
         </div>
     </header>
 
-    <!-- Painéis Flutuantes Laterais -->
+    <!-- Painéis Laterais -->
     <aside class="side-panel left" id="panel-attributes">
         <div class="panel-title">ATRIBUTOS</div>
         <div class="pts-disp">Pontos: <span id="val-pts-side" class="highlight">0</span></div>
@@ -53,7 +45,6 @@
         <div class="stat-mana">MANA <span id="ov-mana-regen">0</span>/s</div>
         <div class="stat-cost">Custo: <span id="ov-cost">0</span>/s</div>
         
-        <!-- Caixa de Progresso Offline (Aparece ao voltar pro jogo) -->
         <div id="offline-claim-box" style="display: none; margin-top: 10px;">
             <div class="panel-title">OFFLINE</div>
             <div id="offline-time" style="font-size: 10px; margin-bottom: 5px; color: var(--neon-gold);">00:00:00</div>
@@ -61,27 +52,20 @@
         </div>
     </aside>
 
-    <!-- Informação de Onda / Inimigos Restantes -->
-    <div id="wave-info">
-        <span class="icon">💀</span> INIMIGOS RESTANTES <span id="val-wave">0/10</span>
-    </div>
-
-    <!-- Barras Centrais Inferiores (Mana, DPS, XP) -->
+    <!-- Barras Centrais -->
     <div id="center-bars">
         <div class="bar-wrapper">
             <div class="bar-labels"><span class="blue">💧 MANA</span> <span id="val-mana-txt">0 / 0</span></div>
             <div class="bar-bg"><div class="bar-fill blue-fill" id="bar-mana"></div></div>
         </div>
-        
         <div class="dps-highlight">DPS: <span id="val-dps-main">0</span></div>
-        
         <div class="bar-wrapper">
             <div class="bar-labels"><span class="green">EXP Nível <span id="val-level-bar">1</span></span> <span id="val-xp-txt">0 / 0</span></div>
             <div class="bar-bg"><div class="bar-fill green-fill" id="bar-xp"></div></div>
         </div>
     </div>
 
-    <!-- Área de Conteúdo Dinâmico (Abas do Menu) -->
+    <!-- Área Principal (Abas) -->
     <main id="main-content">
         
         <!-- ABA: ATRIBUTOS -->
@@ -117,28 +101,26 @@
             </div>
         </section>
 
-        <!-- ABA: UPGRADES (Inimigos) -->
+        <!-- ABA: UPGRADES -->
         <section id="tab-upgrades" class="tab-content">
             <div class="section-title">UPGRADES DE COMBATE</div>
             <div class="list-container">
                 <div class="list-item">
-                    <div>
-                        <h4>Nível dos Inimigos (Lv.<span id="upg-lvl-val">1</span>)</h4>
-                        <p>Mais HP, Ouro e EXP.</p>
-                    </div>
+                    <div><h4>Nível dos Inimigos (Lv.<span id="upg-lvl-val">1</span>)</h4><p>Aumenta HP, Ouro e EXP.</p></div>
                     <button class="btn-buy" id="btn-upg-lvl" onclick="Game.buyEnemyLevel()">🪙 <span id="cost-lvl">10</span></button>
                 </div>
                 <div class="list-item">
-                    <div>
-                        <h4>Enxame Sombrio (<span id="upg-max-val">1</span>/10)</h4>
-                        <p>Mais inimigos simultâneos.</p>
-                    </div>
+                    <div><h4>Enxame Sombrio (<span id="upg-max-val">1</span>/10)</h4><p>Aumenta o limite de inimigos.</p></div>
                     <button class="btn-buy" id="btn-upg-max" onclick="Game.buyMaxEnemies()">🪙 <span id="cost-max">50</span></button>
+                </div>
+                <div class="list-item">
+                    <div><h4>Frenesi Inimigo (Nv.<span id="upg-spd-val">0</span>)</h4><p>Inimigos mais rápidos (+Bônus Ouro).</p></div>
+                    <button class="btn-buy" id="btn-upg-spd" onclick="Game.buyEnemySpeed()">🪙 <span id="cost-spd">100</span></button>
                 </div>
             </div>
         </section>
 
-        <!-- ABA: SKILLS (Árvore Elemental) -->
+        <!-- ABA: SKILLS (Estilo PoE 2) -->
         <section id="tab-skills" class="tab-content">
             <div class="section-title">ÁRVORE ELEMENTAL</div>
             <div class="skill-header">
@@ -152,10 +134,16 @@
                 <button class="ele-btn wind" onclick="UI.filterSkills('wind')">Vento</button>
                 <button class="ele-btn poison" onclick="UI.filterSkills('poison')">Veneno</button>
             </div>
-            <div id="skill-tree-container" class="tree-container"></div>
+            
+            <!-- Container da Árvore Constelação -->
+            <div class="poe-tree-viewport">
+                <div id="skill-tree-container" class="poe-tree-content">
+                    <!-- SVG e Nodes injetados via JS -->
+                </div>
+            </div>
         </section>
 
-        <!-- ABA: ASCENSÃO (Prestige) -->
+        <!-- ABA: ASCENSÃO -->
         <section id="tab-ascensao" class="tab-content">
             <div class="section-title">ASCENSÃO ARCANA</div>
             <div class="ascension-box" style="text-align: center; padding: 10px;">
@@ -167,7 +155,7 @@
 
     </main>
 
-    <!-- Navegação Inferior (Bottom Nav) -->
+    <!-- Navegação Inferior -->
     <nav id="bottom-nav">
         <div class="nav-item active" onclick="UI.switchTab('atributos', this)">
             <div class="nav-icon">📊</div><span>Atributos</span>
@@ -181,14 +169,13 @@
         <div class="nav-item" onclick="UI.switchTab('ascensao', this)">
             <div class="nav-icon">🔥</div><span>Ascensão</span>
         </div>
-        <!-- Botão de Instalar App (Aparece via JS se suportado) -->
         <div class="nav-item" id="btn-install" style="display:none;" onclick="installPWA()">
             <div class="nav-icon">📱</div><span>Instalar</span>
         </div>
     </nav>
 </div>
 
-<!-- Modal de Compra de Skill -->
+<!-- Modal de Skill -->
 <div id="skill-modal" class="modal-overlay" onclick="if(event.target === this) UI.closeModal('skill-modal')">
     <div class="modal-box">
         <h2 id="modal-skill-title">Nome da Skill</h2>
@@ -201,11 +188,7 @@
     </div>
 </div>
 
-<!-- Container de Notificações (Toasts) -->
 <div id="toast-container"></div>
-
-<!-- Lógica do Jogo -->
 <script src="game.js"></script>
-
 </body>
 </html>

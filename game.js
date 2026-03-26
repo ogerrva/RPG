@@ -225,7 +225,7 @@ const Game = {
         Game.state.xp += amt; let up = false;
         while(Game.state.xp >= Game.runtime.reqXp) {
             Game.state.xp -= Game.runtime.reqXp;
-            Game.state.level++; Game.state.statPoints += 5;
+            Game.state.level++; Game.state.statPoints += 20;
             if(Game.state.level % 5 === 0) Game.state.skillPoints++;
             Game.calcStats(); up = true;
         }

@@ -9,17 +9,19 @@ const Utils = {
 };
 
 const Elements = {
-    neutral: { color: "#ffffff" },
-    fire: { color: "#ff3300" }, ice: { color: "#00ffff" },
-    lightning: { color: "#ffff00" }, wind: { color: "#00ff88" },
-    poison: { color: "#b300ff" }
+    neutral: { color: "#ffffff", name: "Neutro" },
+    fire: { color: "#ff3300", name: "Fogo" }, 
+    ice: { color: "#00ffff", name: "Gelo" },
+    lightning: { color: "#ffff00", name: "Raio" }, 
+    wind: { color: "#00ff88", name: "Vento" },
+    poison: { color: "#b300ff", name: "Veneno" }
 };
 
 // Banco de Dados: Teia Gigante Interconectada
 const SkillTreeData = [
     { id: "start", el: "neutral", n: "Despertar", d: "O início da sua jornada.", cost: 0, req: null, x: 1000, y: 1000 },
 
-    // FOGO (Nordeste)
+    // FOGO
     { id: "f1", el: "fire", n: "Lâmina Aquecida", d: "+10% Dano Base.", cost: 1, req: ["start"], x: 1100, y: 900 },
     { id: "f2", el: "fire", n: "Queimadura", d: "Inimigos queimam (5% dano/s por 3s).", cost: 1, req: ["f1", "p2"], x: 1200, y: 800 },
     { id: "f3", el: "fire", n: "Brasas", d: "10% chance de soltar faíscas em área.", cost: 2, req: ["f2"], x: 1150, y: 650 },
@@ -31,7 +33,7 @@ const SkillTreeData = [
     { id: "f9", el: "fire", n: "Incinerar", d: "Dobro de dano em inimigos com <20% HP.", cost: 5, req: ["f7", "f8"], x: 1600, y: 300 },
     { id: "f10", el: "fire", n: "Inferno Rotacional", d: "Lâmina de fogo permanente. Explosões em críticos.", cost: 10, req: ["f9"], x: 1800, y: 200 },
 
-    // GELO (Noroeste)
+    // GELO
     { id: "i1", el: "ice", n: "Toque Gélido", d: "Inimigos ficam 10% mais lentos.", cost: 1, req: ["start"], x: 900, y: 900 },
     { id: "i2", el: "ice", n: "Frio Cortante", d: "+15% Dano contra inimigos lentos.", cost: 1, req: ["i1", "p2"], x: 800, y: 800 },
     { id: "i3", el: "ice", n: "Estilhaços", d: "15% chance de disparar 3 estilhaços de gelo.", cost: 2, req: ["i2"], x: 850, y: 650 },
@@ -43,7 +45,7 @@ const SkillTreeData = [
     { id: "i9", el: "ice", n: "Cristalização", d: "Inimigos congelados mortos dão +20% Ouro.", cost: 5, req: ["i7", "i8"], x: 400, y: 300 },
     { id: "i10", el: "ice", n: "Zero Absoluto", d: "Anel de gelo sólido. Inimigos nascem com 50% lentidão.", cost: 10, req: ["i9"], x: 200, y: 200 },
 
-    // RAIO (Sudeste)
+    // RAIO
     { id: "l1", el: "lightning", n: "Fagulha", d: "+10% Velocidade de Rotação.", cost: 1, req: ["start"], x: 1100, y: 1100 },
     { id: "l2", el: "lightning", n: "Arco Elétrico", d: "20% chance do dano pular para 1 inimigo.", cost: 1, req: ["l1", "f2"], x: 1200, y: 1200 },
     { id: "l3", el: "lightning", n: "Sobrecarga", d: "+30% Mana Máxima.", cost: 2, req: ["l2"], x: 1150, y: 1350 },
@@ -55,7 +57,7 @@ const SkillTreeData = [
     { id: "l9", el: "lightning", n: "Bateria Viva", d: "+50% Regen de Mana na velocidade máxima.", cost: 5, req: ["l7", "l8"], x: 1600, y: 1700 },
     { id: "l10", el: "lightning", n: "Deus do Trovão", d: "Feixe de luz. Arcos pulam infinitamente.", cost: 10, req: ["l9"], x: 1800, y: 1800 },
 
-    // VENTO (Sudoeste)
+    // VENTO
     { id: "w1", el: "wind", n: "Brisa Leve", d: "+10% Raio de Alcance.", cost: 1, req: ["start"], x: 900, y: 1100 },
     { id: "w2", el: "wind", n: "Lâmina de Vento", d: "10% chance de disparar lâmina reta perfurante.", cost: 1, req: ["w1", "i2"], x: 800, y: 1200 },
     { id: "w3", el: "wind", n: "Aerodinâmica", d: "-20% Custo de Mana da rotação.", cost: 2, req: ["w2"], x: 850, y: 1350 },
@@ -67,7 +69,7 @@ const SkillTreeData = [
     { id: "w9", el: "wind", n: "Fôlego Inesgotável", d: "Sem Mana? Gira a 50% da velocidade por 5s grátis.", cost: 5, req: ["w7", "w8"], x: 400, y: 1700 },
     { id: "w10", el: "wind", n: "Furacão Devastador", d: "Tornado verde gigante. Dobra alcance e puxa todos.", cost: 10, req: ["w9"], x: 200, y: 1800 },
 
-    // VENENO (Norte Direto)
+    // VENENO
     { id: "p1", el: "poison", n: "Lâmina Tóxica", d: "Inimigos envenenados perdem 2% HP Max/s.", cost: 1, req: ["start"], x: 1000, y: 800 },
     { id: "p2", el: "poison", n: "Corrosão", d: "Inimigos envenenados recebem +15% Dano Base.", cost: 1, req: ["p1"], x: 1000, y: 650 },
     { id: "p3", el: "poison", n: "Nuvem de Gás", d: "Inimigos mortos deixam nuvem tóxica.", cost: 2, req: ["p2", "i3"], x: 900, y: 500 },
@@ -80,17 +82,28 @@ const SkillTreeData = [
     { id: "p10", el: "poison", n: "Praga Absoluta", d: "Rastro de lodo. Todos nascem envenenados.", cost: 10, req: ["p9"], x: 1000, y: 0 }
 ];
 
-// Banco de Dados: Sinergias (Passivas nas linhas)
-const SynergyData = [
-    { id: "syn_f1_f2", req1: "f1", req2: "f2", n: "Combustão", d: "Aumenta o dano de queimadura em 10%." },
-    { id: "syn_i1_i2", req1: "i1", req2: "i2", n: "Gelo Profundo", d: "Lentidão dura 1s a mais." },
-    { id: "syn_l1_l2", req1: "l1", req2: "l2", n: "Frequência", d: "Arcos elétricos pulam mais rápido." },
-    { id: "syn_w1_w2", req1: "w1", req2: "w2", n: "Brisa Cortante", d: "Lâminas de vento viajam mais longe." },
-    { id: "syn_p1_p2", req1: "p1", req2: "p2", n: "Toxina Pura", d: "Veneno ignora resistência." },
-    { id: "syn_f2_p2", req1: "f2", req2: "p2", n: "Gás Inflamável", d: "Inimigos envenenados recebem +20% dano de fogo." },
-    { id: "syn_i2_w2", req1: "i2", req2: "w2", n: "Vento Congelante", d: "Lâminas de vento aplicam lentidão." },
-    { id: "syn_l2_f2", req1: "l2", req2: "f2", n: "Plasma", d: "Arcos elétricos causam dano de fogo." }
-];
+// Geração Automática de Sinergias
+const SynergyData = [];
+SkillTreeData.forEach(s => {
+    if(s.req) {
+        let reqs = Array.isArray(s.req) ? s.req : [s.req];
+        reqs.forEach(rId => {
+            let parent = SkillTreeData.find(p => p.id === rId);
+            if(parent && parent.id !== "start") {
+                let synId = `syn_${s.id}_${parent.id}`;
+                if(!SynergyData.find(sy => sy.id === synId)) {
+                    let el1 = Elements[s.el].name;
+                    let el2 = Elements[parent.el].name;
+                    SynergyData.push({
+                        id: synId, req1: s.id, req2: parent.id,
+                        n: `Ressonância: ${el1} & ${el2}`,
+                        d: `Passiva ativada pela conexão. Aumenta levemente a eficiência de ambos os elementos.`
+                    });
+                }
+            }
+        });
+    }
+});
 
 const Game = {
     state: {
@@ -100,10 +113,12 @@ const Game = {
         lastSave: Date.now(), unlockedSkills: []
     },
     runtime: {
-        lastFrame: performance.now(), angle: 0, enemies: [], particles: [], texts: [], projectiles: [], shockwaves: [],
+        lastFrame: performance.now(), angle: 0, enemies: [], particles: [], texts: [], 
+        projectiles: [], groundEffects: [], lightnings: [],
         reqXp: 100, maxMana: 100, manaRegen: 5, manaCost: 10, dmg: 1, rps: 1, radius: 80,
         isExhausted: false, activeElement: null, offlineGains: null,
-        tornadoTimer: 0, meteorTimer: 0
+        tornadoTimer: 0, meteorTimer: 0, spawnTimer: 0,
+        elementCounts: { fire: 0, ice: 0, lightning: 0, wind: 0, poison: 0 }
     },
 
     init: () => {
@@ -111,8 +126,7 @@ const Game = {
         if(!Game.hasSkill("start")) Game.state.unlockedSkills.push("start");
         Game.calcStats();
         Renderer.init();
-        UI.initDrag(); // Inicia o sistema de arrastar a tela
-        for(let i=0; i<Game.state.maxEnemies; i++) Game.spawnEnemy();
+        UI.initDrag();
         requestAnimationFrame(Game.loop);
         setInterval(Game.save, 5000);
         UI.update();
@@ -163,6 +177,28 @@ const Game = {
 
     hasSkill: (id) => Game.state.unlockedSkills.includes(id),
 
+    canUnlockSkill: (id) => {
+        if (id === "start") return true;
+        let node = SkillTreeData.find(s => s.id === id);
+        if (!node) return false;
+
+        if (node.req) {
+            let reqs = Array.isArray(node.req) ? node.req : [node.req];
+            if (reqs.some(r => Game.hasSkill(r))) return true;
+        }
+
+        let reverseCheck = Game.state.unlockedSkills.some(unlockedId => {
+            let uNode = SkillTreeData.find(s => s.id === unlockedId);
+            if (uNode && uNode.req) {
+                let uReqs = Array.isArray(uNode.req) ? uNode.req : [uNode.req];
+                return uReqs.includes(id);
+            }
+            return false;
+        });
+
+        return reverseCheck;
+    },
+
     calcStats: () => {
         let s = Game.state; let r = Game.runtime;
         r.reqXp = Math.floor(100 * Math.pow(1.4, s.level - 1));
@@ -176,13 +212,12 @@ const Game = {
         r.maxMana = (100 + (s.ene * 15)) * manaBonus;
         r.manaRegen = 5 + (s.ene * 2);
         if(Game.hasSkill("l9") && r.rps > 2) r.manaRegen *= 1.5;
-        
-        if(Game.hasSkill("f10")) r.activeElement = "fire";
-        else if(Game.hasSkill("i10")) r.activeElement = "ice";
-        else if(Game.hasSkill("l10")) r.activeElement = "lightning";
-        else if(Game.hasSkill("w10")) r.activeElement = "wind";
-        else if(Game.hasSkill("p10")) r.activeElement = "poison";
-        else r.activeElement = null;
+
+        r.elementCounts = { fire: 0, ice: 0, lightning: 0, wind: 0, poison: 0 };
+        s.unlockedSkills.forEach(id => {
+            let sk = SkillTreeData.find(sk => sk.id === id);
+            if(sk && sk.el !== "neutral") r.elementCounts[sk.el]++;
+        });
     },
 
     addXp: (amt) => {
@@ -225,9 +260,28 @@ const Game = {
         }
     },
 
-    buyEnemyLevel: () => { let c = Utils.calcCost(10, Game.state.enemyLvl - 1, 1.5); if(Game.state.gold >= c) { Game.state.gold -= c; Game.state.enemyLvl++; Game.runtime.enemies=[]; for(let i=0; i<Game.state.maxEnemies; i++) Game.spawnEnemy(); UI.update(); } },
-    buyMaxEnemies: () => { let c = Utils.calcCost(50, Game.state.maxEnemies - 1, 2.5); if(Game.state.maxEnemies < 10 && Game.state.gold >= c) { Game.state.gold -= c; Game.state.maxEnemies++; Game.spawnEnemy(); UI.update(); } },
-    buyEnemySpeed: () => { let c = Utils.calcCost(100, Game.state.enemySpd, 1.8); if(Game.state.gold >= c) { Game.state.gold -= c; Game.state.enemySpd++; UI.update(); } },
+    buyEnemyLevel: () => { 
+        let c = Utils.calcCost(10, Game.state.enemyLvl - 1, 1.5); 
+        if(Game.state.gold >= c) { 
+            Game.state.gold -= c; Game.state.enemyLvl++; 
+            Game.runtime.enemies = []; // O loop vai respawnar automaticamente
+            UI.update(); 
+        } 
+    },
+    buyMaxEnemies: () => { 
+        let c = Utils.calcCost(50, Game.state.maxEnemies - 1, 2.5); 
+        if(Game.state.maxEnemies < 30 && Game.state.gold >= c) { 
+            Game.state.gold -= c; Game.state.maxEnemies++; 
+            UI.update(); 
+        } 
+    },
+    buyEnemySpeed: () => { 
+        let c = Utils.calcCost(100, Game.state.enemySpd, 1.8); 
+        if(Game.state.gold >= c) { 
+            Game.state.gold -= c; Game.state.enemySpd++; 
+            UI.update(); 
+        } 
+    },
 
     spawnEnemy: () => {
         let hp = 20 * Math.pow(1.15, Game.state.enemyLvl);
@@ -240,7 +294,8 @@ const Game = {
         Game.runtime.enemies.push(e);
     },
 
-    hitEnemy: (e, dmg, isCrit = false) => {
+    // isProc = true significa que o dano veio de um efeito secundário (raio, estilhaço) e NÃO deve consumir mana
+    hitEnemy: (e, dmg, isCrit = false, isProc = false) => {
         if(e.hp <= 0) return;
         
         if(Game.hasSkill("i2") && e.freezeTimer > 0) dmg *= 1.15;
@@ -251,15 +306,32 @@ const Game = {
         
         e.hp -= dmg; e.flash = 0.1;
         
-        if(Game.hasSkill("p1") && Game.state.mana >= 2) { e.poisonTimer = 3; Game.state.mana -= 2; }
-        if(Game.hasSkill("f2") && Game.state.mana >= 2) { e.burnTimer = 3; Game.state.mana -= 2; }
-        if(Game.hasSkill("i1") && Game.state.mana >= 2) { e.freezeTimer = 2; Game.state.mana -= 2; }
-        
-        if(Game.hasSkill("i3") && Math.random() < 0.15 && Game.state.mana >= 5) { Game.state.mana -= 5; for(let i=0; i<3; i++) Game.fireProjectile(e.x, e.y, "ice", "split"); }
-        if(Game.hasSkill("w2") && Math.random() < 0.10 && Game.state.mana >= 5) { Game.state.mana -= 5; Game.fireProjectile(e.x, e.y, "wind", "pierce"); }
-        if(Game.hasSkill("l2") && Math.random() < 0.20 && Game.state.mana >= 5) { Game.state.mana -= 5; Game.fireProjectile(e.x, e.y, "lightning", "bounce"); }
-        if(isCrit && Game.hasSkill("l6") && Game.state.mana >= 5) { Game.state.mana -= 5; Game.fireProjectile(e.x, e.y, "lightning", "bounce"); }
-        if(isCrit && Game.hasSkill("p7") && e.poisonTimer > 0 && Game.state.mana >= 10) { Game.state.mana -= 10; Renderer.createExplosion(e.x, e.y, Elements.poison.color); Game.runtime.enemies.forEach(en => { if(Math.hypot(en.x-e.x, en.y-e.y) < 50) en.hp -= dmg*0.5; }); }
+        // Apenas o giro principal (isProc = false) consome mana e ativa habilidades
+        if (!isProc) {
+            if(Game.hasSkill("p1") && Game.state.mana >= 2) { e.poisonTimer = 3; Game.state.mana -= 2; }
+            if(Game.hasSkill("f2") && Game.state.mana >= 2) { e.burnTimer = 3; Game.state.mana -= 2; }
+            if(Game.hasSkill("i1") && Game.state.mana >= 2) { e.freezeTimer = 2; Game.state.mana -= 2; }
+            
+            if(Game.hasSkill("i3") && Math.random() < 0.15 && Game.state.mana >= 5) { 
+                Game.state.mana -= 5; 
+                for(let i=0; i<3; i++) Game.fireProjectile(e.x, e.y, "ice", "shard"); 
+            }
+            if(Game.hasSkill("w2") && Math.random() < 0.10 && Game.state.mana >= 5) { 
+                Game.state.mana -= 5; 
+                Game.fireProjectile(e.x, e.y, "wind", "crescent"); 
+            }
+            if((Game.hasSkill("l2") && Math.random() < 0.20) || (isCrit && Game.hasSkill("l6"))) {
+                if(Game.state.mana >= 5) {
+                    Game.state.mana -= 5;
+                    Game.fireLightning(e.x, e.y, 3);
+                }
+            }
+            if(isCrit && Game.hasSkill("p7") && e.poisonTimer > 0 && Game.state.mana >= 10) { 
+                Game.state.mana -= 10; 
+                Renderer.createExplosion(e.x, e.y, Elements.poison.color); 
+                Game.runtime.enemies.forEach(en => { if(Math.hypot(en.x-e.x, en.y-e.y) < 50) Game.hitEnemy(en, dmg*0.5, false, true); }); 
+            }
+        }
         
         Game.runtime.texts.push({ x: e.x + (Math.random()*20-10), y: e.y - 15, txt: Utils.format(dmg), life: 0.8, color: isCrit ? "#ffcc00" : "#fff" });
         
@@ -273,18 +345,40 @@ const Game = {
             Game.state.gold += g; Game.addXp(x);
             
             if(Game.hasSkill("p5") && e.poisonTimer > 0) Game.state.mana += dmg * 0.05;
-            if(Game.hasSkill("f5") && Math.random() < 0.2 && Game.state.mana >= 10) { Game.state.mana -= 10; Renderer.createExplosion(e.x, e.y, Elements.fire.color); Game.runtime.enemies.forEach(en => { if(Math.hypot(en.x-e.x, en.y-e.y) < 50) en.hp -= dmg; }); }
-            if(Game.hasSkill("p3") && e.poisonTimer > 0 && Game.state.mana >= 10) { Game.state.mana -= 10; Game.runtime.shockwaves.push({x: e.x, y: e.y, color: Elements.poison.color, radius: 0, life: 2.0}); }
+            
+            if (!isProc) {
+                if(Game.hasSkill("f6") && Math.random() < 0.3) {
+                    Game.runtime.groundEffects.push({x: e.x, y: e.y, color: Elements.fire.color, radius: 30, life: 3.0, type: 'fire'});
+                }
+                if(Game.hasSkill("f5") && Math.random() < 0.2 && Game.state.mana >= 10) { 
+                    Game.state.mana -= 10; Renderer.createExplosion(e.x, e.y, Elements.fire.color); 
+                    Game.runtime.enemies.forEach(en => { if(Math.hypot(en.x-e.x, en.y-e.y) < 50) Game.hitEnemy(en, dmg, false, true); }); 
+                }
+                if(Game.hasSkill("p3") && e.poisonTimer > 0 && Game.state.mana >= 10) { 
+                    Game.state.mana -= 10; 
+                    Game.runtime.groundEffects.push({x: e.x, y: e.y, color: Elements.poison.color, radius: 40, life: 4.0, type: 'poison'}); 
+                }
+            }
 
             Renderer.createExplosion(e.x, e.y, e.isElite ? "#ff2a4b" : "#00aaff");
-            setTimeout(Game.spawnEnemy, 500);
+            // O Spawn agora é gerenciado pelo Loop principal, evitando bugs de limite
         }
     },
 
-    fireProjectile: (x, y, element, type) => {
+    fireProjectile: (x, y, element, renderType) => {
         let target = Game.runtime.enemies[Math.floor(Math.random() * Game.runtime.enemies.length)];
         if(!target) return;
-        Game.runtime.projectiles.push({ x: x, y: y, target: target, element: element, type: type, speed: 300, dmg: Game.runtime.dmg * 0.5, life: 2.0 });
+        Game.runtime.projectiles.push({ x: x, y: y, target: target, element: element, renderType: renderType, speed: 400, dmg: Game.runtime.dmg * 0.5, life: 2.0 });
+    },
+
+    fireLightning: (startX, startY, jumpsLeft) => {
+        if(jumpsLeft <= 0) return;
+        let target = Game.runtime.enemies.find(en => Math.hypot(en.x - startX, en.y - startY) < 150 && en.hp > 0);
+        if(target) {
+            Game.runtime.lightnings.push({ x1: startX, y1: startY, x2: target.x, y2: target.y, life: 0.15 });
+            Game.hitEnemy(target, Game.runtime.dmg * 0.8, false, true); // isProc = true (Não consome mana)
+            setTimeout(() => Game.fireLightning(target.x, target.y, jumpsLeft - 1), 100);
+        }
     },
 
     prestige: () => {
@@ -294,7 +388,7 @@ const Game = {
             Game.state.essence += ess; Game.state.level = 1; Game.state.xp = 0; Game.state.statPoints = 0;
             Game.state.str = 0; Game.state.agi = 0; Game.state.ene = 0; Game.state.gold = 0;
             Game.state.enemyLvl = 1; Game.state.maxEnemies = 1; Game.state.enemySpd = 0; Game.state.mana = 100;
-            Game.runtime.enemies = []; Game.spawnEnemy(); Game.calcStats(); UI.update();
+            Game.runtime.enemies = []; Game.calcStats(); UI.update();
         }
     },
 
@@ -303,6 +397,13 @@ const Game = {
         Game.runtime.lastFrame = time;
 
         let s = Game.state; let r = Game.runtime;
+
+        // Gerenciador de Spawns (Garante que nunca passe do limite)
+        r.spawnTimer -= dt;
+        if (r.enemies.length < s.maxEnemies && r.spawnTimer <= 0) {
+            Game.spawnEnemy();
+            r.spawnTimer = 0.2; // Delay de 0.2s entre spawns para não nascerem todos no mesmo frame
+        }
 
         let strBonus = Game.hasSkill("f1") ? 1.1 : 1;
         let agiBonus = Game.hasSkill("l1") ? 1.1 : 1;
@@ -335,14 +436,18 @@ const Game = {
 
         if(Game.hasSkill("w4") && s.mana >= 20) {
             r.tornadoTimer += rotDelta;
-            if(r.tornadoTimer >= Math.PI * 40) { r.tornadoTimer = 0; s.mana -= 20; Game.fireProjectile(0, 0, "wind", "orbit"); }
+            if(r.tornadoTimer >= Math.PI * 40) { r.tornadoTimer = 0; s.mana -= 20; Game.fireProjectile(0, 0, "wind", "tornado"); }
         }
         if(Game.hasSkill("l5") && s.mana >= 30) {
             r.meteorTimer += rotDelta;
             if(r.meteorTimer >= Math.PI * 30) {
                 r.meteorTimer = 0; s.mana -= 30;
                 let strongest = r.enemies.reduce((prev, current) => (prev.hp > current.hp) ? prev : current, r.enemies[0]);
-                if(strongest) { Game.hitEnemy(strongest, r.dmg * 5); Renderer.createExplosion(strongest.x, strongest.y, Elements.lightning.color); }
+                if(strongest) { 
+                    Game.hitEnemy(strongest, r.dmg * 5, false, true); 
+                    r.lightnings.push({x1: strongest.x, y1: strongest.y - 200, x2: strongest.x, y2: strongest.y, life: 0.2});
+                    Renderer.createExplosion(strongest.x, strongest.y, Elements.lightning.color); 
+                }
             }
         }
 
@@ -352,8 +457,8 @@ const Game = {
             if (e.flash > 0) e.flash -= dt;
             if (e.stunTimer > 0) { e.stunTimer -= dt; return; }
             
-            if (e.burnTimer > 0) { e.burnTimer -= dt; Game.hitEnemy(e, r.dmg * 0.05 * dt); }
-            if (e.poisonTimer > 0) { e.poisonTimer -= dt; let pDmg = Game.hasSkill("p8") ? 0.05 : 0.02; Game.hitEnemy(e, e.maxHp * pDmg * dt); }
+            if (e.burnTimer > 0) { e.burnTimer -= dt; Game.hitEnemy(e, r.dmg * 0.05 * dt, false, true); }
+            if (e.poisonTimer > 0) { e.poisonTimer -= dt; let pDmg = Game.hasSkill("p8") ? 0.05 : 0.02; Game.hitEnemy(e, e.maxHp * pDmg * dt, false, true); }
 
             let dist = Math.hypot(e.x, e.y);
             let moveSpd = baseSpd;
@@ -374,7 +479,7 @@ const Game = {
                 
                 if (hits > 0) {
                     let isCrit = Math.random() < 0.1;
-                    Game.hitEnemy(e, r.dmg * hits * (isCrit ? 2 : 1), isCrit);
+                    Game.hitEnemy(e, r.dmg * hits * (isCrit ? 2 : 1), isCrit, false); // Dano principal (isProc = false)
                 }
             }
         });
@@ -384,14 +489,24 @@ const Game = {
             if(!p.target || p.target.hp <= 0) { p.life = 0; return; }
             let dx = p.target.x - p.x; let dy = p.target.y - p.y; let dist = Math.hypot(dx, dy);
             if(dist < p.speed * dt) {
-                Game.hitEnemy(p.target, p.dmg); p.life = 0;
-                if(p.type === "bounce") { let next = r.enemies.find(en => en.id !== p.target.id); if(next) Game.fireProjectile(p.target.x, p.target.y, p.element, "bounce"); }
+                Game.hitEnemy(p.target, p.dmg, false, true); p.life = 0; // isProc = true
             } else { p.x += (dx/dist) * p.speed * dt; p.y += (dy/dist) * p.speed * dt; }
         });
         r.projectiles = r.projectiles.filter(p => p.life > 0);
 
-        r.shockwaves.forEach(sw => { sw.life -= dt; sw.radius += 20 * dt; r.enemies.forEach(e => { if(Math.hypot(e.x, e.y) < sw.radius) Game.hitEnemy(e, r.dmg * 0.1 * dt); }); });
-        r.shockwaves = r.shockwaves.filter(sw => sw.life > 0);
+        r.groundEffects.forEach(ge => { 
+            ge.life -= dt; 
+            r.enemies.forEach(e => { 
+                if(Math.hypot(e.x - ge.x, e.y - ge.y) < ge.radius) {
+                    if(ge.type === 'fire') e.burnTimer = 1;
+                    if(ge.type === 'poison') Game.hitEnemy(e, r.dmg * 0.1 * dt, false, true);
+                }
+            }); 
+        });
+        r.groundEffects = r.groundEffects.filter(ge => ge.life > 0);
+
+        r.lightnings.forEach(l => l.life -= dt);
+        r.lightnings = r.lightnings.filter(l => l.life > 0);
 
         r.texts.forEach(t => { t.y -= 30 * dt; t.life -= dt; });
         r.texts = r.texts.filter(t => t.life > 0);
@@ -420,21 +535,24 @@ const Renderer = {
             Game.runtime.particles.push({ x: x, y: y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: 0.5, max: 0.5, c: color });
         }
     },
+    drawLightning: (ctx, x1, y1, x2, y2, color) => {
+        ctx.beginPath(); ctx.moveTo(x1, y1);
+        let segments = 5;
+        for(let i=1; i<=segments; i++) {
+            let nx = x1 + (x2-x1)*(i/segments) + (Math.random()*30-15);
+            let ny = y1 + (y2-y1)*(i/segments) + (Math.random()*30-15);
+            if(i === segments) { nx = x2; ny = y2; }
+            ctx.lineTo(nx, ny);
+        }
+        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.shadowBlur = 10; ctx.shadowColor = color; ctx.stroke(); ctx.shadowBlur = 0;
+    },
     draw: () => {
         let ctx = Renderer.ctx; let cx = Renderer.w / 2; let cy = Renderer.h / 2 - 50;
         ctx.clearRect(0, 0, Renderer.w, Renderer.h);
 
-        if(Game.runtime.activeElement) {
-            ctx.fillStyle = Elements[Game.runtime.activeElement].color;
-            ctx.globalAlpha = 0.1; ctx.fillRect(0, 0, Renderer.w, Renderer.h); ctx.globalAlpha = 1.0;
-        }
-
-        ctx.beginPath(); ctx.arc(cx, cy, Game.runtime.radius, 0, Math.PI*2);
-        ctx.strokeStyle = "rgba(255,255,255,0.05)"; ctx.stroke();
-
-        Game.runtime.shockwaves.forEach(s => {
-            ctx.beginPath(); ctx.arc(cx, cy, s.radius, 0, Math.PI*2);
-            ctx.fillStyle = s.color; ctx.globalAlpha = 0.2; ctx.fill(); ctx.globalAlpha = 1.0;
+        Game.runtime.groundEffects.forEach(ge => {
+            ctx.beginPath(); ctx.arc(cx + ge.x, cy + ge.y, ge.radius, 0, Math.PI*2);
+            ctx.fillStyle = ge.color; ctx.globalAlpha = (ge.life / 4.0) * 0.3; ctx.fill(); ctx.globalAlpha = 1.0;
         });
 
         ctx.globalCompositeOperation = "lighter";
@@ -444,9 +562,26 @@ const Renderer = {
         });
         ctx.globalAlpha = 1.0; ctx.globalCompositeOperation = "source-over";
 
+        Game.runtime.lightnings.forEach(l => {
+            Renderer.drawLightning(ctx, cx + l.x1, cy + l.y1, cx + l.x2, cy + l.y2, Elements.lightning.color);
+        });
+
         Game.runtime.projectiles.forEach(p => {
-            ctx.fillStyle = Elements[p.element].color;
-            ctx.beginPath(); ctx.arc(cx + p.x, cy + p.y, 3, 0, Math.PI*2); ctx.fill();
+            ctx.save(); ctx.translate(cx + p.x, cy + p.y);
+            ctx.fillStyle = Elements[p.element].color; ctx.shadowBlur = 10; ctx.shadowColor = ctx.fillStyle;
+            
+            if(p.renderType === 'shard') {
+                let angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
+                ctx.rotate(angle); ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-5, 5); ctx.lineTo(-5, -5); ctx.fill();
+            } else if(p.renderType === 'crescent') {
+                let angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
+                ctx.rotate(angle); ctx.beginPath(); ctx.arc(0, 0, 10, -Math.PI/2, Math.PI/2); ctx.lineTo(-5, 0); ctx.fill();
+            } else if(p.renderType === 'tornado') {
+                ctx.rotate(Game.runtime.angle * 5); ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI); ctx.stroke();
+            } else {
+                ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI*2); ctx.fill();
+            }
+            ctx.restore();
         });
 
         Game.runtime.enemies.forEach(e => {
@@ -462,18 +597,44 @@ const Renderer = {
             ctx.restore();
         });
 
-        ctx.shadowBlur = 15; ctx.shadowColor = Game.runtime.isExhausted ? "#ff2a4b" : (Game.runtime.activeElement ? Elements[Game.runtime.activeElement].color : "#00aaff");
+        ctx.shadowBlur = 15; ctx.shadowColor = Game.runtime.isExhausted ? "#ff2a4b" : "#00aaff";
         ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(cx, cy, 10, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
 
+        // LÂMINA DINÂMICA
         ctx.save(); ctx.translate(cx, cy); ctx.rotate(Game.runtime.angle);
-        let c1 = Game.runtime.isExhausted ? "rgba(255,42,75,0.8)" : (Game.runtime.activeElement ? Elements[Game.runtime.activeElement].color : "rgba(0,170,255,0.9)");
-        let c2 = Game.runtime.isExhausted ? "rgba(255,42,75,0.2)" : "rgba(255,42,75,0.8)"; 
+        let r = Game.runtime.radius;
+        let counts = Game.runtime.elementCounts;
+
+        let baseColor = Game.runtime.isExhausted ? "rgba(255,42,75,0.5)" : "rgba(0,170,255,0.8)";
+        ctx.beginPath(); ctx.arc(0, 0, r, -Math.PI/4, Math.PI/4);
+        ctx.lineWidth = 4; ctx.strokeStyle = baseColor; ctx.shadowBlur = 10; ctx.shadowColor = baseColor; ctx.stroke();
         
-        ctx.beginPath(); ctx.arc(0, 0, Game.runtime.radius, -Math.PI/4, Math.PI/4);
-        ctx.lineWidth = 4; ctx.strokeStyle = c1; ctx.shadowBlur = 10; ctx.shadowColor = c1; ctx.stroke();
-        
-        ctx.beginPath(); ctx.arc(0, 0, Game.runtime.radius - 5, Math.PI - Math.PI/4, Math.PI + Math.PI/4);
-        ctx.lineWidth = 3; ctx.strokeStyle = c2; ctx.shadowBlur = 10; ctx.shadowColor = c2; ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, r - 5, Math.PI - Math.PI/4, Math.PI + Math.PI/4);
+        ctx.lineWidth = 3; ctx.strokeStyle = baseColor; ctx.stroke();
+
+        if(!Game.runtime.isExhausted) {
+            if(counts.fire > 0) {
+                ctx.beginPath(); ctx.arc(0, 0, r+2, -Math.PI/3, Math.PI/4);
+                ctx.lineWidth = 2 + counts.fire; ctx.strokeStyle = "rgba(255,51,0,0.6)"; ctx.shadowColor = "#ff3300"; ctx.stroke();
+            }
+            if(counts.ice > 0) {
+                ctx.beginPath(); ctx.arc(0, 0, r-8, -Math.PI/4, Math.PI/4);
+                ctx.lineWidth = 2; ctx.strokeStyle = "rgba(0,255,255,0.8)"; ctx.stroke();
+            }
+            if(counts.wind > 0) {
+                ctx.beginPath(); ctx.arc(0, 0, r+10, -Math.PI/2, Math.PI/2);
+                ctx.lineWidth = 1; ctx.strokeStyle = "rgba(0,255,136,0.4)"; ctx.stroke();
+            }
+            if(counts.poison > 0) {
+                ctx.beginPath(); ctx.arc(0, 0, r, -Math.PI/4, Math.PI/4);
+                ctx.lineWidth = 8; ctx.strokeStyle = "rgba(179,0,255,0.3)"; ctx.stroke();
+            }
+            if(counts.lightning > 0 && Math.random() < 0.5) {
+                let sparkAngle = (Math.random() * Math.PI/2) - Math.PI/4;
+                let sx = Math.cos(sparkAngle) * r; let sy = Math.sin(sparkAngle) * r;
+                Renderer.drawLightning(ctx, sx, sy, sx + (Math.random()*20), sy + (Math.random()*20), "#ffff00");
+            }
+        }
         ctx.restore();
 
         ctx.font = "bold 14px 'Rajdhani'"; ctx.textAlign = "center";
@@ -486,7 +647,6 @@ const Renderer = {
 };
 
 const UI = {
-    // Lógica de Arrastar a Tela (Mouse e Touch)
     initDrag: () => {
         const slider = document.getElementById('tree-viewport');
         let isDown = false; let startX, startY, scrollLeft, scrollTop;
@@ -542,7 +702,6 @@ const UI = {
     },
     setTxt: (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; },
 
-    // Renderiza a Árvore com Cores e Sinergias
     rebuildSkillTree: () => {
         let container = document.getElementById('skill-tree-container');
         
@@ -558,12 +717,10 @@ const UI = {
                         let isUnlocked = Game.hasSkill(s.id);
                         let isParentUnlocked = Game.hasSkill(parent.id);
                         
-                        // Cor da linha
                         let color = isUnlocked ? Elements[s.el].color : (isParentUnlocked ? '#555' : '#222');
                         let width = isUnlocked ? 3 : 1;
                         svgHtml += `<line x1="${parent.x}px" y1="${parent.y}px" x2="${s.x}px" y2="${s.y}px" stroke="${color}" stroke-width="${width}" />`;
 
-                        // Verifica se existe Sinergia nesta linha
                         let syn = SynergyData.find(sy => (sy.req1 === s.id && sy.req2 === parent.id) || (sy.req1 === parent.id && sy.req2 === s.id));
                         if(syn) {
                             let synActive = Game.hasSkill(s.id) && Game.hasSkill(parent.id);
@@ -582,7 +739,7 @@ const UI = {
         let nodesHtml = '';
         SkillTreeData.forEach(s => {
             let isUnlocked = Game.hasSkill(s.id);
-            let canUnlock = !isUnlocked && (!s.req || (Array.isArray(s.req) ? s.req.some(r => Game.hasSkill(r)) : Game.hasSkill(s.req)));
+            let canUnlock = !isUnlocked && Game.canUnlockSkill(s.id);
             
             let elColor = Elements[s.el].color;
             let nodeStyle = `left: ${s.x}px; top: ${s.y}px; border-color: ${elColor};`;
@@ -621,7 +778,7 @@ const UI = {
             btn.style.display = "none";
         } else {
             let isUnlocked = Game.hasSkill(s.id);
-            let canUnlock = !isUnlocked && (!s.req || (Array.isArray(s.req) ? s.req.some(r => Game.hasSkill(r)) : Game.hasSkill(s.req)));
+            let canUnlock = !isUnlocked && Game.canUnlockSkill(s.id);
 
             if (isUnlocked) {
                 costEl.innerText = "Habilidade já adquirida."; costEl.style.color = "var(--neon-green)";
@@ -669,7 +826,7 @@ const UI = {
         UI.setTxt('upg-max-val', s.maxEnemies); 
         let cMax = Utils.calcCost(50, s.maxEnemies - 1, 2.5);
         let bMax = document.getElementById('btn-upg-max');
-        if(s.maxEnemies >= 10) { bMax.innerText = "MÁX"; bMax.disabled = true; } 
+        if(s.maxEnemies >= 30) { bMax.innerText = "MÁX"; bMax.disabled = true; } 
         else { UI.setTxt('cost-max', Utils.format(cMax)); bMax.disabled = s.gold < cMax; }
 
         UI.setTxt('upg-spd-val', s.enemySpd); 

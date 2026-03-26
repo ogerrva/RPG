@@ -226,7 +226,7 @@ const Game = {
         while(Game.state.xp >= Game.runtime.reqXp) {
             Game.state.xp -= Game.runtime.reqXp;
             Game.state.level++; Game.state.statPoints += 20;
-            if(Game.state.level % 2 === 0) Game.state.skillPoints++;
+            if(Game.state.level % 1 === 0) Game.state.skillPoints++;
             Game.calcStats(); up = true;
         }
         if(up) UI.showToast(`Level UP!`);

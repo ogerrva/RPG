@@ -48,7 +48,7 @@ const SkillTreeData = [
     { id: "l4", el: "lightning", n: "Condutor", d: "Cada pulo elétrico aumenta a Rotação em 1%.", cost: 2, req: ["l2"], x: 1350, y: 1150 },
     { id: "l5", el: "lightning", n: "Tempestade Estática", d: "A cada 15 giros, um raio cai no inimigo mais forte.", cost: 3, req: ["l3"], x: 1250, y: 1500 },
     { id: "l6", el: "lightning", n: "Choque Crítico", d: "Críticos têm 100% chance de gerar Arco Elétrico.", cost: 3, req: ["l4"], x: 1500, y: 1250 },
-    { id: "l7", el: "lightning", n: "Eletromagnetismo", d: "Ouro é atraído instantaneamente.", cost: 4, req: ["l5"], x: 1400, y: 1600 },
+    { id: "l7", el: "lightning", n: "Alta Tensão", d: "O dano do Arco Elétrico aumenta +10% para cada RPS.", cost: 4, req: ["l5"], x: 1400, y: 1600 }, // Nova Skill Reformulada
     { id: "l8", el: "lightning", n: "Curto-Circuito", d: "10% chance de atordoar inimigos atingidos por raios.", cost: 4, req: ["l6"], x: 1650, y: 1400 },
     { id: "l9", el: "lightning", n: "Bateria Viva", d: "+50% Regen de Mana na velocidade máxima.", cost: 5, req: ["l7", "l8"], x: 1600, y: 1700 },
     { id: "l10", el: "lightning", n: "Deus do Trovão", d: "Feixe de luz. Arcos pulam infinitamente.", cost: 10, req: ["l9"], x: 1800, y: 1800 },
@@ -77,14 +77,12 @@ const SkillTreeData = [
 ];
 
 const ResonancesDB = {
-    // CROSS-ELEMENTAL 
     "syn_f2_p2": { n: "Ressonância Fogo Tóxico", d: "A Corrosão e a Queimadura reagem: Inimigos afetados sofrem Quebra de Armadura (+10% de dano recebido)." },
     "syn_i2_p2": { n: "Ressonância Sangue Frio", d: "O metabolismo lento dos inimigos congelados/lentos faz com que o Veneno dure o dobro de tempo." },
     "syn_l2_f2": { n: "Ressonância Sobrecarga Térmica", d: "Arcos elétricos superaquecem alvos em chamas, causando +50% de dano elétrico." },
     "syn_w2_i2": { n: "Ressonância Vento Glacial", d: "A umidade é congelada no ar: As Lâminas de Vento projetadas ganham 20% de chance de congelar." },
     "syn_p3_i3": { n: "Ressonância Nevasca Ácida", d: "A Nuvem de Gás se funde ao gelo e passa a causar 20% de lentidão profunda em quem pisar nela." },
     "syn_p4_f3": { n: "Ressonância Combustão Volátil", d: "A Epidemia (espalhar veneno) ao encostar em inimigos em chamas causa explosões menores garantidas." },
-    // FOGO 
     "syn_f2_f1": { n: "Ressonância Fervente", d: "+2% Dano Físico Base convertido passivamente da Lâmina." },
     "syn_f3_f2": { n: "Ressonância Cintilante", d: "+5% Dano de Faíscas e efeitos de queimadura." },
     "syn_f4_f2": { n: "Ressonância Implacável", d: "+2% Rotação (RPS) constante extraida do calor residual." },
@@ -95,7 +93,6 @@ const ResonancesDB = {
     "syn_f9_f7": { n: "Ressonância Calcinante", d: "+5% de chance crítica contra alvos com menos de 20% HP." },
     "syn_f9_f8": { n: "Ressonância Desoladora", d: "+10% Dano da onda de calor base." },
     "syn_f10_f9": { n: "Ressonância do Inferno", d: "Dano da Lâmina ganha perfuração de armadura térmica (+5% dano base)." },
-    // GELO 
     "syn_i2_i1": { n: "Ressonância Gélida", d: "+5% Intensidade da Lentidão Base." },
     "syn_i3_i2": { n: "Ressonância Perfurante", d: "+1 Estilhaço extra garantido ao disparar." },
     "syn_i4_i2": { n: "Ressonância Congelante", d: "+1s extra na duração de cada congelamento." },
@@ -106,18 +103,16 @@ const ResonancesDB = {
     "syn_i9_i7": { n: "Ressonância Cristalina", d: "+5% Ouro ganho de qualquer fonte congelada." },
     "syn_i9_i8": { n: "Ressonância Translúcida", d: "+5% EXP ganho de qualquer fonte na aura gélida." },
     "syn_i10_i9": { n: "Ressonância Absoluta", d: "-5% da Vida Máxima base dos inimigos ao spawnar." },
-    // RAIO 
     "syn_l2_l1": { n: "Ressonância Elétrica", d: "+1 Pulo adicional garantido no Arco Elétrico." },
     "syn_l3_l2": { n: "Ressonância Voltagem", d: "+15 Mana Máxima Base." },
     "syn_l4_l2": { n: "Ressonância Condutora", d: "+1% Rotação Base (permanente)." },
     "syn_l5_l3": { n: "Ressonância Estática", d: "Reduz de 15 para 12 giros o requisito da Tempestade Estática." },
     "syn_l6_l4": { n: "Ressonância Crítica", d: "+5% Chance de Acerto Crítico." },
-    "syn_l7_l5": { n: "Ressonância Magnética", d: "Raio magnético de coleta aumentado em 20%." },
+    "syn_l7_l5": { n: "Ressonância de Polaridade", d: "Aumenta a eficiência da Alta Tensão passivamente em 5%." },
     "syn_l8_l6": { n: "Ressonância Chocante", d: "+1s na duração dos atordoamentos de Raio." },
     "syn_l9_l7": { n: "Ressonância Viva", d: "+2 Mana Regen Base passiva." },
     "syn_l9_l8": { n: "Ressonância Cinética", d: "+5% Dano Base elétrico extra." },
     "syn_l10_l9": { n: "Ressonância do Trovão", d: "Arcos elétricos causam +10% de dano a cada pulo extra." },
-    // VENTO 
     "syn_w2_w1": { n: "Ressonância Aerodinâmica", d: "+5% Raio de Alcance Base da lâmina primária." },
     "syn_w3_w2": { n: "Ressonância Fluida", d: "-5% Custo de Mana da Rotação." },
     "syn_w4_w2": { n: "Ressonância Espiral", d: "Tornados criados duram +1s no mapa." },
@@ -127,8 +122,7 @@ const ResonancesDB = {
     "syn_w8_w6": { n: "Ressonância Fantasma", d: "Velocidade de movimento das lâminas fantasmas +20%." },
     "syn_w9_w7": { n: "Ressonância Inesgotável", d: "Fôlego Inesgotável dá +2s de giro grátis sem mana." },
     "syn_w9_w8": { n: "Ressonância Tempestiva", d: "+5% Rotação RPS ativa durante o giro." },
-    "syn_w10_w9": { n: "Ressonância Devastadora", d: "Furacão Devastador também coleta ouro solto no mapa." },
-    // VENENO 
+    "syn_w10_w9": { n: "Ressonância Devastadora", d: "Furacão Devastador puxa mais intensamente os inimigos." },
     "syn_p2_p1": { n: "Ressonância Tóxica", d: "+1% de dano contínuo baseado no HP Máximo pelo Veneno." },
     "syn_p3_p2": { n: "Ressonância Gasosa", d: "Nuvens de Gás deixadas no chão duram +2s." },
     "syn_p4_p2": { n: "Ressonância Viral", d: "Área de espalhamento da Epidemia é 15% maior." },
@@ -178,7 +172,6 @@ const Game = {
         isExhausted: false, offlineGains: null,
         tornadoTimer: 0, meteorTimer: 0, spawnTimer: 0,
         elementCounts: { fire: 0, ice: 0, lightning: 0, wind: 0, poison: 0 },
-        // Lógica de estimativa ETA fixada
         totalSessionXp: 0, xpHistory: [], etaTimer: 0
     },
     R: {},
@@ -319,13 +312,13 @@ const Game = {
         if(Game.R["syn_p9_p7"]) amt *= 1.1; 
         if(Game.R["syn_i9_i8"]) amt *= 1.05; 
 
-        Game.runtime.totalSessionXp += amt; // Para cálculo de ETA não quebrar
+        Game.runtime.totalSessionXp += amt;
         Game.state.xp += amt; let up = false;
 
         while(Game.state.xp >= Game.runtime.reqXp) {
             Game.state.xp -= Game.runtime.reqXp;
             Game.state.level++; Game.state.statPoints += 20;
-            Game.state.skillPoints++; // Ganha 1 Ponto a cada nível!
+            Game.state.skillPoints++; // SP EM TODOS OS LEVELS
             Game.calcStats(); up = true;
         }
         if(up) UI.showToast(`Level UP! Ganhou +1 SP!`);
@@ -403,7 +396,7 @@ const Game = {
         if(e.hp <= 0) return;
         let R = Game.R;
 
-        // Adiciona variação de RPG (Dano entre 85% e 115%)
+        // Variação de RPG (± 15%)
         let variance = 0.85 + (Math.random() * 0.30);
         dmg *= variance;
 
@@ -442,8 +435,8 @@ const Game = {
             }
         }
         
-        // Estilo RPG Chinês para textos
-        let textScale = isCrit ? 1.8 : 1.0;
+        // Textos menores para não poluir
+        let textScale = isCrit ? 1.3 : 0.85; 
         let cColor = isCrit ? "#ff1100" : (Math.random() > 0.5 ? "#ffffff" : "#ffffaa");
         let displayTxt = isCrit ? `CRIT! ${Utils.format(dmg)}` : Utils.format(dmg);
         
@@ -495,8 +488,13 @@ const Game = {
         if(target) {
             Game.runtime.lightnings.push({ x1: startX, y1: startY, x2: target.x, y2: target.y, life: 0.15 });
             let lDmg = Game.runtime.dmg * 0.8;
+            
+            // Lógica reformulada do l7 (Alta Tensão)
+            if (Game.hasSkill("l7")) lDmg *= (1 + (Game.runtime.rps * 0.1));
+
             if (Game.R["syn_l10_l9"]) lDmg *= 1.1;
             if(Game.R["syn_l2_f2"] && target.burnTimer > 0) lDmg *= 1.5;
+            
             Game.hitEnemy(target, lDmg, false, true);
             setTimeout(() => Game.fireLightning(target.x, target.y, jumpsLeft - 1), 100);
         }
@@ -518,9 +516,9 @@ const Game = {
         Game.runtime.lastFrame = time;
         let s = Game.state; let r = Game.runtime; let R = Game.R;
 
-        // Gerenciador de ETA (Estimativa Fixa Baseada na Sessão Total)
+        // Gerenciador de ETA - Baseado na janela móvel de 5 segundos
         r.xpHistory.push({ time: time, xp: r.totalSessionXp });
-        r.xpHistory = r.xpHistory.filter(h => time - h.time <= 5000); // 5 seg janela
+        r.xpHistory = r.xpHistory.filter(h => time - h.time <= 5000); 
         
         r.etaTimer += dt;
         if (r.etaTimer >= 1.0) {
@@ -738,7 +736,6 @@ const Renderer = {
             ctx.restore();
         });
 
-        // DESENHAR INIMIGOS E BARRAS DE VIDA
         Game.runtime.enemies.forEach(e => {
             ctx.save(); ctx.translate(cx + e.x, cy + e.y);
             let eColor = e.isElite ? "#ff2a4b" : "#00aaff";
@@ -753,7 +750,6 @@ const Renderer = {
             ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, e.isElite ? 16 : 12, 0, Math.PI*2); ctx.fill(); ctx.stroke();
             ctx.shadowBlur = 0;
 
-            // HP Bar
             let hpPercent = Math.max(0, e.hp / e.maxHp);
             let barW = 24; let barH = 4;
             ctx.fillStyle = "#000"; ctx.fillRect(-barW/2, -22, barW, barH);
@@ -801,16 +797,15 @@ const Renderer = {
         }
         ctx.restore();
 
-        // TEXTOS DE DANO RPG ESTILO ASIÁTICO
         ctx.font = "900 16px 'Rajdhani'"; ctx.textAlign = "center";
         Game.runtime.texts.forEach(t => {
             ctx.save();
             ctx.translate(cx + t.x, cy + t.y);
-            let currentScale = t.scale * (1 + (1 - t.life/t.maxLife) * 0.3); // Cresce um pouco ao subir
+            let currentScale = t.scale * (1 + (1 - t.life/t.maxLife) * 0.3); 
             ctx.scale(currentScale, currentScale);
             ctx.globalAlpha = Math.max(0, t.life / t.maxLife);
             
-            ctx.lineWidth = 3; ctx.strokeStyle = "#000"; // Borda grossa preta
+            ctx.lineWidth = 3; ctx.strokeStyle = "#000"; 
             ctx.strokeText(t.txt, 0, 0);
             ctx.fillStyle = t.color; 
             ctx.fillText(t.txt, 0, 0);
@@ -849,14 +844,12 @@ const UI = {
         let targetTab = document.getElementById(`tab-${id}`);
         let isAlreadyActive = targetTab.classList.contains('active') && document.getElementById('main-content').classList.contains('open');
 
-        // Fecha todas as janelas primeiro
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
         document.getElementById('app-container').classList.remove('skills-active');
         document.getElementById('main-content').classList.remove('open');
         document.getElementById('app-container').classList.remove('menu-open');
 
-        // Se NÃO estava ativa, abre. Se estava ativa, continuará fechada.
         if (!isAlreadyActive) {
             targetTab.classList.add('active');
             el.classList.add('active');

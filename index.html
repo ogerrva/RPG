@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Twisting Slash: Idle RPG</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
@@ -57,13 +57,16 @@
         </div>
         <div class="dps-highlight">DPS: <span id="val-dps-main">0</span></div>
         <div class="bar-wrapper">
-            <div class="bar-labels"><span class="green">EXP Nível <span id="val-level-bar">1</span></span> <span id="val-xp-txt">0 / 0</span></div>
+            <div class="bar-labels">
+                <span class="green">Nível <span id="val-level-bar">1</span> <span class="eta-badge">⏳ <span id="val-eta">--:--</span></span></span> 
+                <span id="val-xp-txt">0 / 0</span>
+            </div>
             <div class="bar-bg"><div class="bar-fill green-fill" id="bar-xp"></div></div>
         </div>
     </div>
 
     <main id="main-content">
-        <section id="tab-atributos" class="tab-content active">
+        <section id="tab-atributos" class="tab-content">
             <div class="section-title">APRIMORAMENTO DE ATRIBUTOS</div>
             <div class="pts-center">Pontos Disponíveis: <span id="val-pts-main" class="highlight">0</span></div>
             <div class="cards-container">
@@ -90,7 +93,6 @@
                     <button class="btn-buy" id="btn-upg-lvl" onclick="Game.buyEnemyLevel()">🪙 <span id="cost-lvl">10</span></button>
                 </div>
                 <div class="list-item">
-                    <!-- AQUI FOI ALTERADO PARA /30 -->
                     <div><h4>Enxame Sombrio (<span id="upg-max-val">1</span>/30)</h4><p>Aumenta o limite de inimigos.</p></div>
                     <button class="btn-buy" id="btn-upg-max" onclick="Game.buyMaxEnemies()">🪙 <span id="cost-max">50</span></button>
                 </div>
@@ -105,7 +107,7 @@
             <div class="section-title">ÁRVORE DE HABILIDADES</div>
             <div class="skill-header">
                 <span>SP Disponível: <span id="val-sp" class="highlight">0</span></span>
-                <button class="btn-action small outline" onclick="Game.resetSkills()">Resetar Skills</button>
+                <button class="btn-action small outline" onclick="Game.resetSkills()">Resetar Tudo</button>
             </div>
             <div class="poe-tree-viewport" id="tree-viewport">
                 <div id="skill-tree-container" class="poe-tree-content"></div>
@@ -123,7 +125,7 @@
     </main>
 
     <nav id="bottom-nav">
-        <div class="nav-item active" onclick="UI.switchTab('atributos', this)"><div class="nav-icon">📊</div><span>Atributos</span></div>
+        <div class="nav-item" onclick="UI.switchTab('atributos', this)"><div class="nav-icon">📊</div><span>Atributos</span></div>
         <div class="nav-item" onclick="UI.switchTab('upgrades', this)"><div class="nav-icon">⚔️</div><span>Upgrades</span></div>
         <div class="nav-item" onclick="UI.switchTab('skills', this)"><div class="nav-icon">🔮</div><span>Skills</span></div>
         <div class="nav-item" onclick="UI.switchTab('ascensao', this)"><div class="nav-icon">🔥</div><span>Ascensão</span></div>
@@ -138,6 +140,7 @@
         <div id="modal-skill-cost" class="highlight" style="margin-bottom: 15px; font-weight: bold;">Custo: 1 SP</div>
         <div class="modal-btn-group">
             <button class="btn-action outline" onclick="UI.closeModal('skill-modal')">Fechar</button>
+            <button class="btn-action red-btn" id="btn-refund-skill" onclick="Game.refundSkill()" style="display:none;">Devolver Ponto</button>
             <button class="btn-action blue-btn" id="btn-learn-skill" onclick="Game.buySkill()">Aprender</button>
         </div>
     </div>

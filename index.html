@@ -9,13 +9,14 @@
 </head>
 <body>
 
-<!-- TELA DE SELEÇÃO E MAPA MÚNDI -->
+<!-- TELA DE MUNDO -->
 <div id="screen-world" class="active">
     <div class="world-header">
         <h1>ACAMPAMENTO DO VAZIO</h1>
         <div class="global-stash">
-            <span class="gold-text">🪙 Ouro Global: <span id="global-gold">0</span></span>
+            <span class="gold-text">🪙 Ouro: <span id="global-gold">0</span></span>
             <span class="essence-text">🔮 Essência: <span id="global-essence">0</span></span>
+            <span class="unlock-text" style="color:var(--neon-green); margin-left:15px;">🔓 Pontos: <span id="global-unlocks">0</span></span>
         </div>
     </div>
 
@@ -26,16 +27,15 @@
         </div>
     </div>
 
-    <div class="inventory-section">
-        <h2>ARSENAL COMPARTILHADO</h2>
-        <p style="font-size:12px; color:#888;">Armas dropam em combate. Clique para equipar no herói selecionado.</p>
-        <div class="inventory-grid" id="inventory-grid">
+    <div class="inventory-section" style="margin-top: 20px;">
+        <h2 style="font-size: 16px; color: var(--text-muted); border-left: 3px solid var(--neon-blue); padding-left: 10px; margin-bottom: 10px;">ARSENAL GLOBAL</h2>
+        <div class="inventory-grid" id="global-inventory-grid" style="display: flex; flex-wrap: wrap;">
             <!-- Gerado via JS -->
         </div>
     </div>
 </div>
 
-<!-- TELA DE COMBATE (JOGO PRINCIPAL) -->
+<!-- TELA DE COMBATE -->
 <div id="app-container" class="hidden">
     <canvas id="gameCanvas"></canvas>
 
@@ -67,11 +67,6 @@
         <div class="stat-dps">DPS<br><span id="ov-dps" class="highlight">0</span></div>
         <div class="stat-mana">MANA <span id="ov-mana-regen">0</span>/s</div>
         <div class="stat-cost">Custo: <span id="ov-cost">0</span>/s</div>
-        
-        <div id="offline-claim-box" style="display: none; margin-top: 10px;">
-            <div class="panel-title">OFFLINE</div>
-            <button class="btn-action gold-btn" style="padding: 5px; font-size: 10px;" onclick="Game.claimOffline()">COLETAR</button>
-        </div>
     </aside>
 
     <div id="center-bars" class="hide-on-skills">
@@ -100,8 +95,18 @@
             </div>
         </section>
 
-        <section id="tab-upgrades" class="tab-content">
-            <div class="section-title">DESAFIO DA FENDA</div>
+        <!-- ABA DE INVENTÁRIO -->
+        <section id="tab-inventario" class="tab-content">
+            <div class="section-title">SEU INVENTÁRIO (ARMAS)</div>
+            <p style="font-size: 11px; color:#888; text-align:center; margin-bottom:10px;">Clique na arma para ver detalhes ou equipar.</p>
+            <div class="inventory-grid" id="game-inventory-grid" style="max-height: 150px; overflow-y: auto;">
+                <!-- Gerado via JS -->
+            </div>
+        </section>
+
+        <!-- ABA DE FENDA (UPGRADES DE INIMIGOS) -->
+        <section id="tab-fenda" class="tab-content">
+            <div class="section-title">CONTROLE DA FENDA</div>
             <div class="list-container">
                 <div class="list-item"><div><h4>Nível dos Inimigos (Lv.<span id="upg-lvl-val">1</span>)</h4><p>Aumenta HP, Ouro e EXP.</p></div><button class="btn-buy" id="btn-upg-lvl" onclick="Game.buyEnemyLevel()">🪙 <span id="cost-lvl">10</span></button></div>
                 <div class="list-item"><div><h4>Enxame Sombrio (<span id="upg-max-val">1</span>/30)</h4><p>Aumenta o limite de inimigos na tela.</p></div><button class="btn-buy" id="btn-upg-max" onclick="Game.buyMaxEnemies()">🪙 <span id="cost-max">50</span></button></div>
@@ -113,7 +118,6 @@
             <div class="section-title">CONSTELAÇÃO DE PODER</div>
             <div class="skill-header">
                 <span>SP Disponível: <span id="val-sp" class="highlight">0</span></span>
-                <button class="btn-action small outline" onclick="Game.resetSkills()">Resetar Tudo</button>
             </div>
             <div class="poe-tree-viewport" id="tree-viewport">
                 <div id="skill-tree-container" class="poe-tree-content"></div>
@@ -123,19 +127,34 @@
         <section id="tab-ascensao" class="tab-content">
             <div class="section-title">ASCENSÃO DE CLASSE</div>
             <div class="ascension-box" style="text-align: center; padding: 10px;">
-                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Ascender envia este herói ao nível 1, mas concede Essências Globais e desbloqueia novas Classes no Acampamento.</p>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Ascender envia este herói ao nível 1, mas concede Essências e +1 Ponto de Classe. Skills e Atributos são zerados!</p>
                 <h2 class="purple-glow" style="color: var(--neon-purple); font-size: 24px; margin-bottom: 15px;">+<span id="val-pending-essence">0</span> Essências Globais</h2>
                 <button class="btn-action purple-btn" id="btn-do-prestige" onclick="Game.prestige()">ASCENDER HERÓI (Req. Nv 50)</button>
             </div>
         </section>
     </main>
 
+    <!-- 5 MENUS AQUI -->
     <nav id="bottom-nav">
-        <div class="nav-item" onclick="UI.switchTab('atributos', this)"><div class="nav-icon">📊</div><span>Atributos</span></div>
-        <div class="nav-item" onclick="UI.switchTab('upgrades', this)"><div class="nav-icon">⚔️</div><span>Fenda</span></div>
+        <div class="nav-item" onclick="UI.switchTab('atributos', this)"><div class="nav-icon">📊</div><span>Status</span></div>
+        <div class="nav-item" onclick="UI.switchTab('inventario', this)"><div class="nav-icon">🎒</div><span>Arsenal</span></div>
+        <div class="nav-item" onclick="UI.switchTab('fenda', this)"><div class="nav-icon">⚔️</div><span>Fenda</span></div>
         <div class="nav-item" onclick="UI.switchTab('skills', this)"><div class="nav-icon">🔮</div><span>Skills</span></div>
         <div class="nav-item" onclick="UI.switchTab('ascensao', this)"><div class="nav-icon">🔥</div><span>Ascensão</span></div>
     </nav>
+</div>
+
+<!-- MODALS -->
+<div id="weapon-details-modal" class="modal-overlay" onclick="if(event.target === this) UI.closeModal('weapon-details-modal')" style="z-index: 2000;">
+    <div class="modal-box">
+        <h2 id="modal-wpn-title">Arma</h2>
+        <p id="modal-wpn-desc" style="margin-bottom: 5px;">Desc</p>
+        <p id="modal-wpn-stats" class="highlight" style="margin-bottom: 15px; font-weight: bold; font-size: 14px; white-space: pre-wrap;">Status</p>
+        <div class="modal-btn-group">
+            <button class="btn-action outline" onclick="UI.closeModal('weapon-details-modal')">Fechar</button>
+            <button class="btn-action blue-btn" id="btn-equip-weapon">Equipar</button>
+        </div>
+    </div>
 </div>
 
 <div id="skill-modal" class="modal-overlay" onclick="if(event.target === this) UI.closeModal('skill-modal')">

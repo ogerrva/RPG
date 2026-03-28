@@ -3,22 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Twisting Slash: Idle RPG</title>
+    <title>Twisting Slash: Chronicles</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
 
-<div id="app-container">
+<!-- TELA DE SELEÇÃO E MAPA MÚNDI -->
+<div id="screen-world" class="active">
+    <div class="world-header">
+        <h1>ACAMPAMENTO DO VAZIO</h1>
+        <div class="global-stash">
+            <span class="gold-text">🪙 Ouro Global: <span id="global-gold">0</span></span>
+            <span class="essence-text">🔮 Essência: <span id="global-essence">0</span></span>
+        </div>
+    </div>
+
+    <div class="character-select">
+        <h2>SEUS HERÓIS</h2>
+        <div class="char-grid" id="char-grid">
+            <!-- Gerado via JS -->
+        </div>
+    </div>
+
+    <div class="inventory-section">
+        <h2>ARSENAL COMPARTILHADO</h2>
+        <p style="font-size:12px; color:#888;">Armas dropam em combate. Clique para equipar no herói selecionado.</p>
+        <div class="inventory-grid" id="inventory-grid">
+            <!-- Gerado via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- TELA DE COMBATE (JOGO PRINCIPAL) -->
+<div id="app-container" class="hidden">
     <canvas id="gameCanvas"></canvas>
 
     <header id="hud-top">
+        <button class="btn-back" onclick="Game.returnToWorld()">⬅ Sair</button>
         <div class="player-profile">
-            <div class="avatar"></div>
             <div class="info">
-                <h1 id="player-name">SlashMaster</h1>
+                <h1 id="player-name">Classe</h1>
                 <span>NÍVEL <span id="val-level">1</span></span>
                 <div class="mini-xp-bar"><div id="mini-xp-fill"></div></div>
             </div>
@@ -30,7 +55,7 @@
     </header>
 
     <aside class="side-panel left hide-on-skills" id="panel-attributes">
-        <div class="panel-title">ATRIBUTOS</div>
+        <div class="panel-title">STATUS</div>
         <div class="pts-disp">Pontos: <span id="val-pts-side" class="highlight">0</span></div>
         <div class="stat-row"><span class="icon str">⚔️</span> <span id="ov-str">0</span></div>
         <div class="stat-row"><span class="icon ene">⚡</span> <span id="ov-ene">0</span></div>
@@ -38,14 +63,13 @@
     </aside>
 
     <aside class="side-panel right hide-on-skills" id="panel-status">
-        <div class="panel-title">STATUS</div>
+        <div class="panel-title">COMBATE</div>
         <div class="stat-dps">DPS<br><span id="ov-dps" class="highlight">0</span></div>
         <div class="stat-mana">MANA <span id="ov-mana-regen">0</span>/s</div>
         <div class="stat-cost">Custo: <span id="ov-cost">0</span>/s</div>
         
         <div id="offline-claim-box" style="display: none; margin-top: 10px;">
             <div class="panel-title">OFFLINE</div>
-            <div id="offline-time" style="font-size: 10px; margin-bottom: 5px; color: var(--neon-gold);">00:00:00</div>
             <button class="btn-action gold-btn" style="padding: 5px; font-size: 10px;" onclick="Game.claimOffline()">COLETAR</button>
         </div>
     </aside>
@@ -55,7 +79,7 @@
             <div class="bar-labels"><span class="blue">💧 MANA</span> <span id="val-mana-txt">0 / 0</span></div>
             <div class="bar-bg"><div class="bar-fill blue-fill" id="bar-mana"></div></div>
         </div>
-        <div class="dps-highlight">DPS: <span id="val-dps-main">0</span></div>
+        <div class="dps-highlight">Arma: <span id="val-weapon-name">Lâmina Básica</span></div>
         <div class="bar-wrapper">
             <div class="bar-labels">
                 <span class="green">Nível <span id="val-level-bar">1</span> <span class="eta-badge">⏳ <span id="val-eta">--:--</span></span></span> 
@@ -67,44 +91,26 @@
 
     <main id="main-content">
         <section id="tab-atributos" class="tab-content">
-            <div class="section-title">APRIMORAMENTO DE ATRIBUTOS</div>
+            <div class="section-title">ATRIBUTOS BASE</div>
             <div class="pts-center">Pontos Disponíveis: <span id="val-pts-main" class="highlight">0</span></div>
             <div class="cards-container">
-                <div class="attr-card str">
-                    <div class="card-top"><div class="icon-box">⚔️</div><div class="card-info"><h4>FORÇA</h4><span id="card-str" class="val">0</span></div><button class="btn-add" id="btn-add-str" onclick="Game.addStat('str')">+</button></div>
-                    <div class="card-bot">+ Dano Base</div>
-                </div>
-                <div class="attr-card ene">
-                    <div class="card-top"><div class="icon-box">⚡</div><div class="card-info"><h4>ENERGIA</h4><span id="card-ene" class="val">0</span></div><button class="btn-add" id="btn-add-ene" onclick="Game.addStat('ene')">+</button></div>
-                    <div class="card-bot">+ Mana / - Custo</div>
-                </div>
-                <div class="attr-card agi">
-                    <div class="card-top"><div class="icon-box">🌪️</div><div class="card-info"><h4>VELOCIDADE</h4><span id="card-agi" class="val">0</span></div><button class="btn-add" id="btn-add-agi" onclick="Game.addStat('agi')">+</button></div>
-                    <div class="card-bot">+ Rotação (RPS)</div>
-                </div>
+                <div class="attr-card str"><div class="card-top"><div class="icon-box">⚔️</div><div class="card-info"><h4>FORÇA</h4><span id="card-str" class="val">0</span></div><button class="btn-add" id="btn-add-str" onclick="Game.addStat('str')">+</button></div></div>
+                <div class="attr-card ene"><div class="card-top"><div class="icon-box">⚡</div><div class="card-info"><h4>ENERGIA</h4><span id="card-ene" class="val">0</span></div><button class="btn-add" id="btn-add-ene" onclick="Game.addStat('ene')">+</button></div></div>
+                <div class="attr-card agi"><div class="card-top"><div class="icon-box">🌪️</div><div class="card-info"><h4>VELOCIDADE</h4><span id="card-agi" class="val">0</span></div><button class="btn-add" id="btn-add-agi" onclick="Game.addStat('agi')">+</button></div></div>
             </div>
         </section>
 
         <section id="tab-upgrades" class="tab-content">
-            <div class="section-title">UPGRADES DE COMBATE</div>
+            <div class="section-title">DESAFIO DA FENDA</div>
             <div class="list-container">
-                <div class="list-item">
-                    <div><h4>Nível dos Inimigos (Lv.<span id="upg-lvl-val">1</span>)</h4><p>Aumenta HP, Ouro e EXP.</p></div>
-                    <button class="btn-buy" id="btn-upg-lvl" onclick="Game.buyEnemyLevel()">🪙 <span id="cost-lvl">10</span></button>
-                </div>
-                <div class="list-item">
-                    <div><h4>Enxame Sombrio (<span id="upg-max-val">1</span>/30)</h4><p>Aumenta o limite de inimigos.</p></div>
-                    <button class="btn-buy" id="btn-upg-max" onclick="Game.buyMaxEnemies()">🪙 <span id="cost-max">50</span></button>
-                </div>
-                <div class="list-item">
-                    <div><h4>Frenesi Inimigo (Nv.<span id="upg-spd-val">0</span>)</h4><p>Inimigos mais rápidos (+Bônus Ouro).</p></div>
-                    <button class="btn-buy" id="btn-upg-spd" onclick="Game.buyEnemySpeed()">🪙 <span id="cost-spd">100</span></button>
-                </div>
+                <div class="list-item"><div><h4>Nível dos Inimigos (Lv.<span id="upg-lvl-val">1</span>)</h4><p>Aumenta HP, Ouro e EXP.</p></div><button class="btn-buy" id="btn-upg-lvl" onclick="Game.buyEnemyLevel()">🪙 <span id="cost-lvl">10</span></button></div>
+                <div class="list-item"><div><h4>Enxame Sombrio (<span id="upg-max-val">1</span>/30)</h4><p>Aumenta o limite de inimigos na tela.</p></div><button class="btn-buy" id="btn-upg-max" onclick="Game.buyMaxEnemies()">🪙 <span id="cost-max">50</span></button></div>
+                <div class="list-item"><div><h4>Frenesi Inimigo (Nv.<span id="upg-spd-val">0</span>)</h4><p>Inimigos mais rápidos (+Bônus Ouro).</p></div><button class="btn-buy" id="btn-upg-spd" onclick="Game.buyEnemySpeed()">🪙 <span id="cost-spd">100</span></button></div>
             </div>
         </section>
 
         <section id="tab-skills" class="tab-content">
-            <div class="section-title">ÁRVORE DE HABILIDADES</div>
+            <div class="section-title">CONSTELAÇÃO DE PODER</div>
             <div class="skill-header">
                 <span>SP Disponível: <span id="val-sp" class="highlight">0</span></span>
                 <button class="btn-action small outline" onclick="Game.resetSkills()">Resetar Tudo</button>
@@ -115,28 +121,27 @@
         </section>
 
         <section id="tab-ascensao" class="tab-content">
-            <div class="section-title">ASCENSÃO ARCANA</div>
+            <div class="section-title">ASCENSÃO DE CLASSE</div>
             <div class="ascension-box" style="text-align: center; padding: 10px;">
-                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Sacrifique seu progresso atual para ganhar multiplicadores permanentes de dano.</p>
-                <h2 class="purple-glow" style="color: var(--neon-purple); font-size: 24px; margin-bottom: 15px;">+<span id="val-pending-essence">0</span> Essências</h2>
-                <button class="btn-action purple-btn" id="btn-do-prestige" onclick="Game.prestige()">ASCENDER (Requer Nv. 50)</button>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Ascender envia este herói ao nível 1, mas concede Essências Globais e desbloqueia novas Classes no Acampamento.</p>
+                <h2 class="purple-glow" style="color: var(--neon-purple); font-size: 24px; margin-bottom: 15px;">+<span id="val-pending-essence">0</span> Essências Globais</h2>
+                <button class="btn-action purple-btn" id="btn-do-prestige" onclick="Game.prestige()">ASCENDER HERÓI (Req. Nv 50)</button>
             </div>
         </section>
     </main>
 
     <nav id="bottom-nav">
         <div class="nav-item" onclick="UI.switchTab('atributos', this)"><div class="nav-icon">📊</div><span>Atributos</span></div>
-        <div class="nav-item" onclick="UI.switchTab('upgrades', this)"><div class="nav-icon">⚔️</div><span>Upgrades</span></div>
+        <div class="nav-item" onclick="UI.switchTab('upgrades', this)"><div class="nav-icon">⚔️</div><span>Fenda</span></div>
         <div class="nav-item" onclick="UI.switchTab('skills', this)"><div class="nav-icon">🔮</div><span>Skills</span></div>
         <div class="nav-item" onclick="UI.switchTab('ascensao', this)"><div class="nav-icon">🔥</div><span>Ascensão</span></div>
-        <div class="nav-item" id="btn-install" style="display:none;" onclick="installPWA()"><div class="nav-icon">📱</div><span>Instalar</span></div>
     </nav>
 </div>
 
 <div id="skill-modal" class="modal-overlay" onclick="if(event.target === this) UI.closeModal('skill-modal')">
     <div class="modal-box">
-        <h2 id="modal-skill-title">Nome da Skill</h2>
-        <p id="modal-skill-desc">Descrição da habilidade.</p>
+        <h2 id="modal-skill-title">Nome</h2>
+        <p id="modal-skill-desc">Desc</p>
         <div id="modal-skill-cost" class="highlight" style="margin-bottom: 15px; font-weight: bold;">Custo: 1 SP</div>
         <div class="modal-btn-group">
             <button class="btn-action outline" onclick="UI.closeModal('skill-modal')">Fechar</button>

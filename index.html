@@ -3,174 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Twisting Slash: Chronicles</title>
+    <title>Astro-Forge: Deep Core</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- TELA DE MUNDO -->
-<div id="screen-world" class="active">
-    <div class="world-header">
-        <h1>ACAMPAMENTO DO VAZIO</h1>
-        <div class="global-stash">
-            <span class="gold-text">🪙 Ouro: <span id="global-gold">0</span></span>
-            <span class="essence-text">🔮 Essência: <span id="global-essence">0</span></span>
-            <span class="unlock-text" style="color:var(--neon-green); margin-left:15px;">🔓 Pontos: <span id="global-unlocks">0</span></span>
+<div id="app">
+    <nav id="sidebar">
+        <div class="logo">
+            <div class="logo-icon"></div>
+            DEEP CORE
         </div>
-    </div>
-
-    <div class="character-select">
-        <h2>SEUS HERÓIS</h2>
-        <div class="char-grid" id="char-grid">
-            <!-- Gerado via JS -->
-        </div>
-    </div>
-
-    <div class="inventory-section" style="margin-top: 20px;">
-        <h2 style="font-size: 16px; color: var(--text-muted); border-left: 3px solid var(--neon-blue); padding-left: 10px; margin-bottom: 10px;">ARSENAL GLOBAL</h2>
-        <div class="inventory-grid" id="global-inventory-grid" style="display: flex; flex-wrap: wrap;">
-            <!-- Gerado via JS -->
-        </div>
-    </div>
-</div>
-
-<!-- TELA DE COMBATE -->
-<div id="app-container" class="hidden">
-    <canvas id="gameCanvas"></canvas>
-
-    <header id="hud-top">
-        <button class="btn-back" onclick="Game.returnToWorld()">⬅ Sair</button>
-        <div class="player-profile">
-            <div class="info">
-                <h1 id="player-name">Classe</h1>
-                <span>NÍVEL <span id="val-level">1</span></span>
-                <div class="mini-xp-bar"><div id="mini-xp-fill"></div></div>
-            </div>
-        </div>
-        <div class="resources">
-            <div class="res gold">🪙 <span id="val-gold">0</span></div>
-            <div class="res essence">🔮 <span id="val-essence">0</span></div>
-        </div>
-    </header>
-
-    <aside class="side-panel left hide-on-skills" id="panel-attributes">
-        <div class="panel-title">STATUS</div>
-        <div class="pts-disp">Pontos: <span id="val-pts-side" class="highlight">0</span></div>
-        <div class="stat-row"><span class="icon str">⚔️</span> <span id="ov-str">0</span></div>
-        <div class="stat-row"><span class="icon ene">⚡</span> <span id="ov-ene">0</span></div>
-        <div class="stat-row"><span class="icon agi">🌪️</span> <span id="ov-agi">0</span></div>
-    </aside>
-
-    <aside class="side-panel right hide-on-skills" id="panel-status">
-        <div class="panel-title">COMBATE</div>
-        <div class="stat-dps">DPS<br><span id="ov-dps" class="highlight">0</span></div>
-        <div class="stat-mana">MANA <span id="ov-mana-regen">0</span>/s</div>
-        <div class="stat-cost">Custo: <span id="ov-cost">0</span>/s</div>
-    </aside>
-
-    <div id="center-bars" class="hide-on-skills">
-        <div class="bar-wrapper">
-            <div class="bar-labels"><span class="blue">💧 MANA</span> <span id="val-mana-txt">0 / 0</span></div>
-            <div class="bar-bg"><div class="bar-fill blue-fill" id="bar-mana"></div></div>
-        </div>
-        <div class="dps-highlight">Arma: <span id="val-weapon-name">Lâmina Básica</span></div>
-        <div class="bar-wrapper">
-            <div class="bar-labels">
-                <span class="green">Nível <span id="val-level-bar">1</span> <span class="eta-badge">⏳ <span id="val-eta">--:--</span></span></span> 
-                <span id="val-xp-txt">0 / 0</span>
-            </div>
-            <div class="bar-bg"><div class="bar-fill green-fill" id="bar-xp"></div></div>
-        </div>
-    </div>
-
-    <main id="main-content">
-        <section id="tab-atributos" class="tab-content">
-            <div class="section-title">ATRIBUTOS BASE</div>
-            <div class="pts-center">Pontos Disponíveis: <span id="val-pts-main" class="highlight">0</span></div>
-            <div class="cards-container">
-                <div class="attr-card str"><div class="card-top"><div class="icon-box">⚔️</div><div class="card-info"><h4>FORÇA</h4><span id="card-str" class="val">0</span></div><button class="btn-add" id="btn-add-str" onclick="Game.addStat('str')">+</button></div></div>
-                <div class="attr-card ene"><div class="card-top"><div class="icon-box">⚡</div><div class="card-info"><h4>ENERGIA</h4><span id="card-ene" class="val">0</span></div><button class="btn-add" id="btn-add-ene" onclick="Game.addStat('ene')">+</button></div></div>
-                <div class="attr-card agi"><div class="card-top"><div class="icon-box">🌪️</div><div class="card-info"><h4>VELOCIDADE</h4><span id="card-agi" class="val">0</span></div><button class="btn-add" id="btn-add-agi" onclick="Game.addStat('agi')">+</button></div></div>
-            </div>
-        </section>
-
-        <!-- ABA DE INVENTÁRIO -->
-        <section id="tab-inventario" class="tab-content">
-            <div class="section-title">SEU INVENTÁRIO (ARMAS)</div>
-            <p style="font-size: 11px; color:#888; text-align:center; margin-bottom:10px;">Clique na arma para ver detalhes ou equipar.</p>
-            <div class="inventory-grid" id="game-inventory-grid" style="max-height: 150px; overflow-y: auto;">
-                <!-- Gerado via JS -->
-            </div>
-        </section>
-
-        <!-- ABA DE FENDA (UPGRADES DE INIMIGOS) -->
-        <section id="tab-fenda" class="tab-content">
-            <div class="section-title">CONTROLE DA FENDA</div>
-            <div class="list-container">
-                <div class="list-item"><div><h4>Nível dos Inimigos (Lv.<span id="upg-lvl-val">1</span>)</h4><p>Aumenta HP, Ouro e EXP.</p></div><button class="btn-buy" id="btn-upg-lvl" onclick="Game.buyEnemyLevel()">🪙 <span id="cost-lvl">10</span></button></div>
-                <div class="list-item"><div><h4>Enxame Sombrio (<span id="upg-max-val">1</span>/30)</h4><p>Aumenta o limite de inimigos na tela.</p></div><button class="btn-buy" id="btn-upg-max" onclick="Game.buyMaxEnemies()">🪙 <span id="cost-max">50</span></button></div>
-                <div class="list-item"><div><h4>Frenesi Inimigo (Nv.<span id="upg-spd-val">0</span>)</h4><p>Inimigos mais rápidos (+Bônus Ouro).</p></div><button class="btn-buy" id="btn-upg-spd" onclick="Game.buyEnemySpeed()">🪙 <span id="cost-spd">100</span></button></div>
-            </div>
-        </section>
-
-        <section id="tab-skills" class="tab-content">
-            <div class="section-title">CONSTELAÇÃO DE PODER</div>
-            <div class="skill-header">
-                <span>SP Disponível: <span id="val-sp" class="highlight">0</span></span>
-            </div>
-            <div class="poe-tree-viewport" id="tree-viewport">
-                <div id="skill-tree-container" class="poe-tree-content"></div>
-            </div>
-        </section>
-
-        <section id="tab-ascensao" class="tab-content">
-            <div class="section-title">ASCENSÃO DE CLASSE</div>
-            <div class="ascension-box" style="text-align: center; padding: 10px;">
-                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Ascender envia este herói ao nível 1, mas concede Essências e +1 Ponto de Classe. Skills e Atributos são zerados!</p>
-                <h2 class="purple-glow" style="color: var(--neon-purple); font-size: 24px; margin-bottom: 15px;">+<span id="val-pending-essence">0</span> Essências Globais</h2>
-                <button class="btn-action purple-btn" id="btn-do-prestige" onclick="Game.prestige()">ASCENDER HERÓI (Req. Nv 50)</button>
-            </div>
-        </section>
-    </main>
-
-    <!-- 5 MENUS AQUI -->
-    <nav id="bottom-nav">
-        <div class="nav-item" onclick="UI.switchTab('atributos', this)"><div class="nav-icon">📊</div><span>Status</span></div>
-        <div class="nav-item" onclick="UI.switchTab('inventario', this)"><div class="nav-icon">🎒</div><span>Arsenal</span></div>
-        <div class="nav-item" onclick="UI.switchTab('fenda', this)"><div class="nav-icon">⚔️</div><span>Fenda</span></div>
-        <div class="nav-item" onclick="UI.switchTab('skills', this)"><div class="nav-icon">🔮</div><span>Skills</span></div>
-        <div class="nav-item" onclick="UI.switchTab('ascensao', this)"><div class="nav-icon">🔥</div><span>Ascensão</span></div>
+        <button class="nav-btn active" data-target="tab-core">O Núcleo</button>
+        <button class="nav-btn" data-target="tab-factory">Fábrica (Plantas)</button>
+        <button class="nav-btn" data-target="tab-research">Laboratório (Tech)</button>
+        <button class="nav-btn" data-target="tab-armory">Arsenal (Traje)</button>
+        <button class="nav-btn" data-target="tab-neural">Uplink Neural</button>
+        <button class="nav-btn" onclick="hardReset()" style="color: var(--alert); margin-top: auto;">Resetar Núcleo</button>
     </nav>
+
+    <main>
+        <header id="top-bar">
+            <div class="res-monitor" data-type="power">
+                <div class="res-icon">⚡</div>
+                <div class="res-info">
+                    <span class="res-label">ENERGIA</span>
+                    <span class="res-value" id="val-power">0</span>
+                </div>
+            </div>
+            <div class="res-monitor" data-type="biomass">
+                <div class="res-icon">🌿</div>
+                <div class="res-info">
+                    <span class="res-label">BIOMASSA</span>
+                    <span class="res-value" id="val-biomass">0</span>
+                </div>
+            </div>
+            <div class="res-monitor" data-type="alloy">
+                <div class="res-icon">⚙️</div>
+                <div class="res-info">
+                    <span class="res-label">LIGA METÁLICA</span>
+                    <span class="res-value" id="val-alloy">0</span>
+                </div>
+            </div>
+            <div class="res-monitor" data-type="data">
+                <div class="res-icon">💾</div>
+                <div class="res-info">
+                    <span class="res-label">DADOS BRUTOS</span>
+                    <span class="res-value" id="val-data">0</span>
+                </div>
+            </div>
+        </header>
+
+        <div id="tab-core" class="tab-content active">
+            <div class="core-container">
+                <div class="reactor-status">STATUS DO REATOR: <span id="reactor-state" class="state-ok">ESTÁVEL</span></div>
+                <div class="reactor-core" id="btn-crank" onclick="crankReactor(event)">
+                    <div class="core-pulse"></div>
+                    <span>GERAR ENERGIA</span>
+                </div>
+                <div class="terminal">
+                    <div class="terminal-header">TERMINAL DE LOGS</div>
+                    <div class="terminal-body" id="log-output">
+                        > Sistema iniciado.<br>
+                        > Reator aguardando ignição manual.<br>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-factory" class="tab-content">
+            <div class="section-title">PLANTAS DE MANUFATURA</div>
+            <p class="subtitle">Máquinas requerem recursos constantes. Use o botão ON/OFF para gerenciar o consumo.</p>
+            <div class="machine-grid" id="machine-list"></div>
+        </div>
+
+        <div id="tab-research" class="tab-content">
+            <div class="section-title">ÁRVORE DE TECNOLOGIA</div>
+            <p class="subtitle">Gaste Dados Brutos e Ligas Metálicas para descobrir novos paradigmas físicos.</p>
+            <div class="tech-grid" id="research-list"></div>
+        </div>
+
+        <div id="tab-armory" class="tab-content">
+            <div class="section-title">MODIFICAÇÕES DO EXO-TRAJE</div>
+            <div class="exo-suit-display">
+                <div class="suit-slot" id="slot-helmet">CAPACETE: [VAZIO]</div>
+                <div class="suit-slot" id="slot-chest">PEITORAL: [VAZIO]</div>
+                <div class="suit-slot" id="slot-boots">BOTAS: [VAZIO]</div>
+            </div>
+            <div class="tech-grid" id="gear-list" style="margin-top: 20px;"></div>
+        </div>
+
+        <!-- Correção: Removido o style inline que forçava o display flex -->
+        <div id="tab-neural" class="tab-content no-padding">
+            <div style="background: var(--panel-bg); padding: 15px; border-bottom: 2px solid var(--data); text-align: center; z-index: 10;">
+                <h2 style="color: var(--data); margin-bottom: 5px;">REDE NEURAL</h2>
+                <p style="color: #aaa; font-size: 18px;">Expanda a rede a partir do centro (CORE).<br>
+                Moeda: <strong style="color: var(--data);">DADOS BRUTOS</strong> | Efeito: <strong style="color: var(--ok);">+1% Velocidade Global por quadrado</strong>.</p>
+            </div>
+            <div id="neural-container" style="flex: 1;">
+                <div id="neural-grid"></div>
+            </div>
+        </div>
+    </main>
 </div>
 
-<!-- MODALS -->
-<div id="weapon-details-modal" class="modal-overlay" onclick="if(event.target === this) UI.closeModal('weapon-details-modal')" style="z-index: 2000;">
-    <div class="modal-box">
-        <h2 id="modal-wpn-title">Arma</h2>
-        <p id="modal-wpn-desc" style="margin-bottom: 5px;">Desc</p>
-        <p id="modal-wpn-stats" class="highlight" style="margin-bottom: 15px; font-weight: bold; font-size: 14px; white-space: pre-wrap;">Status</p>
-        <div class="modal-btn-group">
-            <button class="btn-action outline" onclick="UI.closeModal('weapon-details-modal')">Fechar</button>
-            <button class="btn-action blue-btn" id="btn-equip-weapon">Equipar</button>
-        </div>
+<div id="afk-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; justify-content:center; align-items:center;">
+    <div style="background:var(--panel-bg); border:2px solid var(--bio); padding:30px; border-radius:5px; text-align:center; max-width:400px; width: 90%;">
+        <h2 style="color:var(--bio); margin-bottom:15px;">CICLO OFFLINE CONCLUÍDO</h2>
+        <p>Tempo ausente: <span id="afk-time" style="color:var(--power);"></span></p>
+        <p style="margin: 15px 0; color:#aaa;">Suas máquinas ligadas continuaram operando.</p>
+        <button onclick="document.getElementById('afk-modal').style.display='none'" style="padding:10px 20px; background:var(--bg-dark); border:1px solid var(--bio); color:var(--bio); cursor:pointer; font-family:'VT323'; font-size:20px; width: 100%;">RETOMAR CONTROLE</button>
     </div>
 </div>
 
-<div id="skill-modal" class="modal-overlay" onclick="if(event.target === this) UI.closeModal('skill-modal')">
-    <div class="modal-box">
-        <h2 id="modal-skill-title">Nome</h2>
-        <p id="modal-skill-desc">Desc</p>
-        <div id="modal-skill-cost" class="highlight" style="margin-bottom: 15px; font-weight: bold;">Custo: 1 SP</div>
-        <div class="modal-btn-group">
-            <button class="btn-action outline" onclick="UI.closeModal('skill-modal')">Fechar</button>
-            <button class="btn-action red-btn" id="btn-refund-skill" onclick="Game.refundSkill()" style="display:none;">Devolver Ponto</button>
-            <button class="btn-action blue-btn" id="btn-learn-skill" onclick="Game.buySkill()">Aprender</button>
-        </div>
-    </div>
-</div>
-
-<div id="toast-container"></div>
+<div id="floating-texts"></div>
 <script src="game.js"></script>
 </body>
 </html>
